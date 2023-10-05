@@ -1,12 +1,7 @@
 FROM python:3.10-slim
 
 # 필요한 라이브러리 설치
-RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository 'deb http://archive.ubuntu.com/ubuntu trusty universe' && \
-    apt-get update && \
-    apt-get install -y mysql-client && \
-    apt-get clean
+RUN apt-get update && apt-get install -y default-mysql-client default-libmysqlclient-dev
 
 WORKDIR /app
 
