@@ -9,7 +9,8 @@ host = os.environ["DB_HOST"] # nba-rds.cm2oekrnfegh.ap-northeast-1.rds.amazonaws
 port = os.environ["DB_PORT"] # 2206
 database = os.environ["DB_NAME"] # nba
 
-SQLALCHEMY_DATABASE_URL = f"mysql://{user}:{password}@{host}:{port}/{database}"
+# SQLALCHEMY_DATABASE_URL = f"mysql://{user}:{password}@{host}:{port}/{database}"
+SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
 
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
