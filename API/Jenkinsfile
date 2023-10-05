@@ -15,7 +15,7 @@ pipeline {
             steps {
                 git branch: 'master',
                     credentialsId: 'NBA-Web-API-Gitops-Pipeline-Credential',
-                    url: 'https://github.com/Choiwonwong/NBA-WebServer.git'
+                    url: 'https://github.com/Choiwonwong/NBA-APIServer.git'
             }
         }
         
