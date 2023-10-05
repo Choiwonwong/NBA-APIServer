@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nba-api
+  namespace: api
   labels:
     app: nba-api
 spec:
@@ -26,7 +27,7 @@ spec:
                       - arm64
       containers:
         - name: nba-api
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-db-1
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-db-1.1
           ports:
             - name: http
               containerPort: 8000
@@ -64,10 +65,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nba-api-service
+  namespace: api
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-subnets: nba-private1, nba-private2, nba-private3
   labels:
     app: nba-api
 spec:
