@@ -4,11 +4,10 @@ FROM ubuntu:20.04
 # Update package lists and install necessary packages
 RUN apt-get update && apt-get install -y \
     python3.10 \
-    python3.10-dev \
-    python3.10-distutils \
     python3-pip \
-    default-libmysqlclient-dev \
-    build-essential
+    # default-libmysqlclient-dev \
+    mysql-client \
+    # build-essential
 
 # Set the working directory
 WORKDIR /app
