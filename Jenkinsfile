@@ -8,7 +8,7 @@ pipeline {
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential'
         IMAGE_NAME = 'nba-api'
-        IMAGE_VERSION = "test-db"
+        IMAGE_VERSION = "test-db-2"
     }
     stages {
         stage('Checkout') {
@@ -36,6 +36,13 @@ pipeline {
                         docker.image("$ACCOUNT_ID.$ECR_PATH/$IMAGE_NAME:$IMAGE_VERSION").push()
                     }
                 }
+            } 
+        }
+
+        stage('Deploy in NBA EKS') {
+            steps {                
+                sh 'kubectl apply -f deploy.yaml'
+                // sh 'rm ~/.docker/config.json || true'
             } 
         }
     }

@@ -1,5 +1,7 @@
 FROM python:3.10-slim
 
+RUN apt-get install python3-dev default-libmysqlclient-dev build-essential -y
+
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
