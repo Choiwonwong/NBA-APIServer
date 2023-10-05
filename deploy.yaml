@@ -26,7 +26,7 @@ spec:
                       - arm64
       containers:
         - name: nba-api
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-db
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-db-1
           ports:
             - name: http
               containerPort: 8000
