@@ -167,5 +167,4 @@ lib
 Test
 *.sql
 __pycache__
-main.*
 pyvenv.cfg
