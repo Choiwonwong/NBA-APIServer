@@ -7,6 +7,12 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+@app.get('/')
+async def home():
+    return {
+        "message": "Hello"
+    }
+
 # Dependency
 # def get_db():
 #     db = SessionLocal()
