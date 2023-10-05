@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master',
+                git branch: 'main',
                     credentialsId: 'NBA-Web-API-Gitops-Pipeline-Credential',
                     url: 'https://github.com/Choiwonwong/NBA-APIServer.git'
             }
