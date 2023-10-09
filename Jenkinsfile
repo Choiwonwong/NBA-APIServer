@@ -41,8 +41,7 @@ pipeline {
 
         stage('Deploy in NBA EKS') {
             steps {                
-                sh 'kubectl apply -f deploy.yaml'
-                // sh 'rm ~/.docker/config.json || true'
+                sh 'kubectl apply -f manufest/deploy.yaml'
             } 
         }
     }
