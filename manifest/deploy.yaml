@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nba-api
+  namespace: api
+  labels:
+    app: nba-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nba-api
+  template:
+    metadata:
+      labels:
+        app: nba-api
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - arm64
+      containers:
+        - name: nba-api
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-db-1.2
+          ports:
+            - name: http
+              containerPort: 8000
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nba-rds-credentials-secret
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: nba-rds-credentials-secret
+                  key: DB_PASS
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: nba-rds-credentials-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: nba-rds-credentials-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: nba-rds-credentials-secret
+                  key: DB_NAME
+      nodeSelector:
+        kubernetes.io/os: linux
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nba-api-service
+  namespace: api
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-subnets: nba-public1, nba-public2, nba-public3
+  labels:
+    app: nba-api
+spec:
+  selector:
+    app: nba-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer
