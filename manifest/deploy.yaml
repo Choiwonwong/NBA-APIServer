@@ -15,6 +15,7 @@ spec:
       labels:
         app: nba-api
     spec:
+      # serviceAccountName: nba-api-sa
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -27,7 +28,7 @@ spec:
                       - arm64
       containers:
         - name: nba-api
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-k8s-1.0.1
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-k8s-1.0.2
           ports:
             - name: http
               containerPort: 8000
@@ -58,16 +59,22 @@ spec:
                 secretKeyRef:
                   name: nba-rds-credentials-secret
                   key: DB_NAME
-          volumeMounts:
-            - name: nba-kubeconfig
-              mountPath: "/root/.kube/"
-              readOnly: true
+          # volumeMounts:
+          #   - name: nba-kubeconfig
+          #     mountPath: "/root/.kube/"
+          #     readOnly: true
+          #   - name: nba-aws-credentials
+          #     mountPath: "/root/.aws/"
+          #     readOnly: true
       nodeSelector:
         kubernetes.io/os: linux
-      volumes:
-        - name: nba-kubeconfig
-          secret:
-            secretName: nba-kubeconfig
+      # volumes:
+      #   - name: nba-kubeconfig
+      #     secret:
+      #       secretName: nba-kubeconfig
+      #   - name: nba-aws-credentials
+      #     secret:
+      #       secretName: nba-aws-credentials
 
 ---
 apiVersion: v1
