@@ -59,22 +59,22 @@ spec:
                 secretKeyRef:
                   name: nba-rds-credentials-secret
                   key: DB_NAME
-          # volumeMounts:
-          #   - name: nba-kubeconfig
-          #     mountPath: "/root/.kube/"
-          #     readOnly: true
-          #   - name: nba-aws-credentials
-          #     mountPath: "/root/.aws/"
-          #     readOnly: true
+              # volumeMounts:
+              #   - name: nba-kubeconfig
+              #     mountPath: "/root/.kube/"
+              #     readOnly: true
+              # - name: nba-aws-credentials
+              #   mountPath: "/root/.aws/"
+              readOnly: true
       nodeSelector:
         kubernetes.io/os: linux
       # volumes:
       #   - name: nba-kubeconfig
       #     secret:
       #       secretName: nba-kubeconfig
-      #   - name: nba-aws-credentials
-      #     secret:
-      #       secretName: nba-aws-credentials
+      # - name: nba-aws-credentials
+      #   secret:
+      #     secretName: nba-aws-credentials
 
 ---
 apiVersion: v1
