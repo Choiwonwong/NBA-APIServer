@@ -168,3 +168,4 @@ Test
 *.sql
 __pycache__
 pyvenv.cfg
+.aws

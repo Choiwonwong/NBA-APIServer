@@ -12,8 +12,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 COPY . .
 
 # Copy AWS credentials and config files to /root/.aws/
-COPY ../.aws/credentials /root/.aws/credentials
-COPY ../.aws/config /root/.aws/config
+COPY .aws/credentials /root/.aws/credentials
+COPY .aws/config /root/.aws/config
 
 # Run aws eks update-kubeconfig command
 RUN aws eks update-kubeconfig --name nba-eks --region ap-northeast-1
