@@ -29,8 +29,6 @@ pipeline {
     
         stage('upload aws ECR') {
             steps {                
-                sh 'rm  ~/.dockercfg || true'
-                sh 'rm ~/.docker/config.json || true'
                 script {
                     docker.withRegistry("https://$ACCOUNT_ID.$ECR_PATH", "ecr:$REGION:NBA-AWS-Credential") {
                         docker.image("$ACCOUNT_ID.$ECR_PATH/$IMAGE_NAME:$IMAGE_VERSION").push()
