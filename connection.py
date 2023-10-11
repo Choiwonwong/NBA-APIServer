@@ -27,4 +27,5 @@ configuration.verify_ssl = True
 configuration.ssl_ca_cert = "/root/.kube/ca.crt"
 configuration.debug = True
 configuration.api_key = {"authorization": f"Bearer {eks_token}"}
-k8s_api_client = client.CoreV1Api(client.ApiClient(configuration))
+CoreV1Api_client = client.CoreV1Api(client.ApiClient(configuration))
+BatchV1Api_client = client.BatchV1Api(client.ApiClient(configuration))

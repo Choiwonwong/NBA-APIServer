@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 import yaml
-from connection import k8s_api_client
+from connection import BatchV1Api_client
 router = APIRouter()
 
 @router.post('/')
@@ -29,7 +29,7 @@ def create_kubernetes_job():
     manifest_dict = yaml.safe_load(manifest)
 
     # Create a Kubernetes API client
-    api_instance = k8s_api_client.BatchV1Api()
+    api_instance = BatchV1Api_client.BatchV1Api()
 
     # Create the Job resource
     try:

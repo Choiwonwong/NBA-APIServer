@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from routes import api
 from routes import webhook
-from connection import Base, engine, k8s_api_client
+from connection import Base, engine, CoreV1Api_client
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,7 +21,7 @@ app = FastAPI()
 @app.get('/')
 async def get_namespaces():
     try:
-        namespaces = k8s_api_client.list_namespace()
+        namespaces = CoreV1Api_client.list_namespace()
         namespace_names = [namespace.metadata.name for namespace in namespaces.items]
         
         return {
