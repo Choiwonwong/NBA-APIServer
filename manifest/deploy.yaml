@@ -15,7 +15,6 @@ spec:
       labels:
         app: nba-api
     spec:
-      # serviceAccountName: nba-api-sa
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -59,19 +58,29 @@ spec:
                 secretKeyRef:
                   name: nba-rds-credentials-secret
                   key: DB_NAME
-              # volumeMounts:
-              #   - name: nba-kubeconfig
-              #     mountPath: "/root/.kube/"
-              #     readOnly: true
+            - name: EKS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nba-eks-url
+                  key: eks_url
+            - name: EKS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: nba-api-sa
+                  key: token
+          volumeMounts:
+            - name: nba-api-ca
+              mountPath: "/root/.kube/"
+              readOnly: true
               # - name: nba-aws-credentials
               #   mountPath: "/root/.aws/"
-              readOnly: true
+              #   readOnly: true
       nodeSelector:
         kubernetes.io/os: linux
-      # volumes:
-      #   - name: nba-kubeconfig
-      #     secret:
-      #       secretName: nba-kubeconfig
+      volumes:
+        - name: nba-api-ca
+          secret:
+            secretName: nba-api-sa
       # - name: nba-aws-credentials
       #   secret:
       #     secretName: nba-aws-credentials
