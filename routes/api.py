@@ -28,10 +28,8 @@ def create_kubernetes_job():
     # Parse the YAML manifest into a Python dictionary
     manifest_dict = yaml.safe_load(manifest)
 
-    # Create a Kubernetes API client
-    api_instance = BatchV1Api_client.BatchV1Api()
+    api_instance = BatchV1Api_client
 
-    # Create the Job resource
     try:
         api_response = api_instance.create_namespaced_job(
             body=manifest_dict,
