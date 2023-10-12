@@ -6,7 +6,6 @@ from api.models.pydantic_models import RequestsCreate
 from api.models.crud import create_request, update_request, get_request_by_id
 from api.models.connection import get_session
 from sqlalchemy.orm import Session
-from api.models.schemas import Request
 
 router = APIRouter()
 
@@ -53,7 +52,7 @@ async def full_provision_test(id: int, request_body: RequestsCreate, session: Se
     update_request(
         session=session, request=currentRequest,request_data={"progress": "프로비저닝", "provisionState": "성공"}
     )
-    return {"message": f"{id}에 대한 Full Provisioning 테스트 완료"}
+    return {"message": f"{id}에 대한 Full Provisioning Pod 생성 완료"}
 
 @router.post("/deploytest/{id}", tags=["[1013]test"])
 def deploy_test(id: int, session: Session = Depends(get_session)):
@@ -70,6 +69,6 @@ def deploy_test(id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=500, detail="처리 중 오류 발생")
     
     update_request(session=session, request=currentRequest, request_data={"deployState": "성공"})
-    return {"message": f"{id}에 대한 배포 테스트 완료"}
+    return {"message": f"{id}에 대한 Job 생성 완료"}
 
 
