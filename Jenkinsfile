@@ -3,7 +3,7 @@ pipeline {
     
     // 환경변수 지정
     environment {
-        REGION='ap-northeast-1' // 이거 Public Region이라서 그럼
+        REGION='ap-northeast-1'
         ECR_PATH='dkr.ecr.ap-northeast-1.amazonaws.com'
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential-v2'
@@ -28,7 +28,7 @@ pipeline {
         stage('upload aws ECR') {
             steps {                
                 script {
-                    docker.withRegistry("https://$ACCOUNT_ID.$ECR_PATH", "ecr:$REGION:NBA-AWS-Credential") {
+                    docker.withRegistry("https://$ACCOUNT_ID.$ECR_PATH", "ecr:$REGION:$AWS_CREDENTIAL_NAME") {
                         docker.image("$ACCOUNT_ID.$ECR_PATH/$IMAGE_NAME:$IMAGE_VERSION").push()
                     }
                 }
