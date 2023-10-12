@@ -29,7 +29,7 @@ def updateRequest(request_id: int, request_data: RequestsUpdate, session: Sessio
     request = get_request_by_id(session, request_id)
     if not request:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
-    request = update_request(session, request, request_data)
+    request = update_request(session, request, request_data.dict())
     return request
 
 @router.delete('/{request_id}', tags=["request"])

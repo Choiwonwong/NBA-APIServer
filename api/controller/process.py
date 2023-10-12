@@ -6,29 +6,35 @@ class processController:
         self.coreV1client = CoreV1Api_client
         self.batchV1client = BatchV1Api_client
 
-    def create_namespace(self, namespace):
+    def createNamespace(self, namespace):
         v1 = self.coreV1client
-        body = v1.V1Namespace(metadata=v1.V1ObjectMeta(name=namespace))
+        body = {
+            'metadata': {
+                'name': namespace
+            }
+        }
         try:
-            v1.create_namespace(body)
+            v1.create_namespace(body=body)
             print(f"Namespace '{namespace}' created.")
         except ApiException as e:
             print(f"Error creating namespace: {e}")
-            self.create_namespace(namespace=namespace + "rescue") 
+            self.createNamespace(namespace=namespace + "-rescue")
 
-    def create_aws_credentials(self, namespace, aws_access_key, aws_secret_key):
+    def createAwsCredentials(self, namespace, aws_access_key, aws_secret_key):
         v1 = self.coreV1client
-        secret = v1.V1Secret(
-            metadata=v1.V1ObjectMeta(name="aws-credentials"),
-            string_data={
-                "AWS_ACCESS_KEY_ID": aws_access_key,
-                "AWS_SECRET_ACCESS_KEY": aws_secret_key,
-                "AWS_DEFAULT_REGION": "ap-northeast-2",
-                "AWS_DEFAULT_OUTPUT": "json"
+        awsCredentialSecret = {
+            'metadata': {
+                'name': 'aws-credentials'
+            },
+            'stringData': {
+                'AWS_ACCESS_KEY_ID': aws_access_key,
+                'AWS_SECRET_ACCESS_KEY': aws_secret_key,
+                'AWS_DEFAULT_REGION': 'ap-northeast-2',
+                'AWS_DEFAULT_OUTPUT': 'json'
             }
-        )
+        }
         try:
-            v1.create_namespaced_secret(namespace, secret)
+            v1.create_namespaced_secret(namespace, awsCredentialSecret)
             print("AWS credentials Secret created.")
         except ApiException as e:
             print(f"Error creating AWS credentials Secret: {e}")

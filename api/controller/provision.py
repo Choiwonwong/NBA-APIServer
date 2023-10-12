@@ -1,4 +1,5 @@
-from api.models.connection import CoreV1Api_client, BatchV1Api_client
+from api.models.connection import CoreV1Api_client, BatchV1Api_client, K8s_client
+from kubernetes import utils
 from kubernetes.client.rest import ApiException
 import yaml
 
@@ -21,25 +22,15 @@ class provisionController:
         except ApiException as e:
             print(f"Error creating ConfigMap: {e}")
 
-    def create_pod(self, name):
-        v1 = self.coreV1client
-
-        with open('controller/manifest/provision.yaml', 'r') as manifest_file:
+    def createPod(self, name):
+        with open('api/controller/manifest/provision.yaml', 'r') as manifest_file:
             pod_manifest = yaml.safe_load(manifest_file)
-            pod_manifest['metadata']['name'] = name
+
+            pod_manifest['metadata']['name'] = name    
             pod_manifest['metadata']['namespace'] = self.namespace
 
-            pod = v1.client.V1Pod()
-            pod.api_version = pod_manifest['apiVersion']
-            pod.kind = pod_manifest['kind']
-            pod.metadata = v1.client.V1ObjectMeta(
-                name=name,
-                namespace=self.namespace
-            )
-            pod.spec = v1.client.V1PodSpec.from_dict(pod_manifest['spec'])
-
             try:
-                v1.create_namespaced_pod(self.namespace, pod)
+                utils.create_from_dict(K8s_client, pod_manifest, namespace=self.namespace)
                 print(f"Pod '{name}' created in namespace '{self.namespace}'.")
             except ApiException as e:
                 print(f"Error creating Pod: {e}")

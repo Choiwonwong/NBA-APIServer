@@ -26,7 +26,7 @@ def get_requests(session: Session) -> list[Request]:
 
 # Update a request
 def update_request(session: Session, request: Request, request_data: dict) -> Request:
-    for field, value in request_data.dict().items() :
+    for field, value in request_data.items() :
         setattr(request, field, value)
     setattr(request, "updatedAt", date.now())
     session.commit()
