@@ -9,22 +9,6 @@ from api.services import deploy
 
 router = APIRouter()
 
-# @router.get('/')
-# async def get_all_requests():
-#     return {"Message": "Hello World"}
-
-# @router.get('/{request_id}')
-# async def get_request():
-#     return {"Message": "Hello World"}
-
-# @router.post('/')
-# async def create_request():
-#     return {"Message": "Hello World"}
-
-# @router.get('/{request_id}/logs')
-# async def get_request_logs():
-#     return {"Message": "Hello World"}
-
 ### 테스트용 Request CRUD API
 
 @router.get('/test', response_model=list[RequestsOutput], tags=["test"])
@@ -60,5 +44,6 @@ def delete_test_request(request_id: int, session: Session = Depends(get_session)
     delete_request(session, request)
     return {"message": "Request deleted successfully"}
 
-
-### 
+# @router.get('/{request_id}/logs')
+# async def get_request_logs():
+#     return {"Message": "Hello World"}

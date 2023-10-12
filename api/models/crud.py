@@ -1,4 +1,4 @@
-from .schemas import Request, Provision, Deploy
+from .schemas import Request
 from sqlalchemy.orm import Session
 from datetime import datetime as date
 
@@ -6,7 +6,7 @@ from datetime import datetime as date
 # Create a new request
 def create_request(session: Session, request_data: dict) -> Request:
     request_dict = request_data.dict()
-    new_request = Request(**request_dict, progress="처리 시작", state="진행 중", createdAt=date.now(), updatedAt=date.now())
+    new_request = Request(**request_dict, progress="처리 시작", processState="진행 중", createdAt=date.now(), updatedAt=date.now(), tries=0, )
     session.add(new_request)
     session.commit()
     session.refresh(new_request)
@@ -26,9 +26,9 @@ def get_requests(session: Session) -> list[Request]:
 
 # Update a request
 def update_request(session: Session, request: Request, request_data: dict) -> Request:
-    request.updatedAt = date.now()
-    for field, value in request_data.items():
+    for field, value in request_data.dict().items() :
         setattr(request, field, value)
+    setattr(request, "updatedAt", date.now())
     session.commit()
     session.refresh(request)
     return request
@@ -37,12 +37,3 @@ def update_request(session: Session, request: Request, request_data: dict) -> Re
 def delete_request(session: Session, request: Request):
     session.delete(request)
     session.commit()
-
-
-def create_provision(session: Session, provision_data: dict) -> Provision:
-    provision_data = provision_data.dict()
-    new_request = Provision(**provision_data, state="진행 중", createdAt=date.now(), updatedAt=date.now())
-    session.add(new_request)
-    session.commit()
-    session.refresh(new_request)
-    return new_request
