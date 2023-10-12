@@ -4,19 +4,25 @@ from sqlalchemy.orm import sessionmaker, Session
 from kubernetes import client
 import os
 
-# user = os.environ["DB_USER"] # nba
-# password = os.environ["DB_PASS"] # kakaoschool2023
-# host = os.environ["DB_HOST"] # nba-rds.cm2oekrnfegh.ap-northeast-1.rds.amazonaws.com
-# port = os.environ["DB_PORT"] # 2206
-# database = os.environ["DB_NAME"] # nba
+# user = os.environ["DB_USER"]
+# password = os.environ["DB_PASS"]
+# host = os.environ["DB_HOST"]
+# port = os.environ["DB_PORT"]
+# database = os.environ["DB_NAME"]
 
 # SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}"
-
 SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://root:test1234@localhost:3306/nba"
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-session: Session = SessionLocal()
+
+def get_session() -> Session:
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
 eks_url = os.environ.get('EKS_URL')
 eks_token = os.environ.get('EKS_TOKEN')

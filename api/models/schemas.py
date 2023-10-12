@@ -4,6 +4,7 @@ import sqlalchemy as sa
 
 # SQLModel 모델
 class Request(SQLModel, table=True):
+    __tablename__ = "requests"
     uuid: bytes = Field(default=None, primary_key=True, index=True)
     id: int = Field(sa_column=sa.Column(autoincrement=True))
     createdAt: date = Field(default=None)
@@ -18,6 +19,7 @@ class Request(SQLModel, table=True):
     deploys: list['Deploy'] = Relationship(back_populates="request")
 
 class Provision(SQLModel, table=True):
+    __tablename__ = "provisions"
     provision_uuid: bytes = Field(default=None, primary_key=True, index=True)
     id: int = Field(sa_column=sa.Column(autoincrement=True))
     state: str
@@ -25,10 +27,11 @@ class Provision(SQLModel, table=True):
     createdAt: date = Field(default=None)
     updatedAt: date = Field(default=None)
     tries: int
-    request_uuid: bytes = Field(index=True, foreign_key="request.uuid")
+    request_uuid: bytes = Field(index=True, foreign_key="requests.uuid")
     request: Request = Relationship(back_populates="provisions")
 
 class Deploy(SQLModel, table=True):
+    __tablename__ = "deploys"
     deploy_uuid: bytes = Field(default=None, primary_key=True, index=True)
     id: int = Field(sa_column=sa.Column(autoincrement=True))
     state: str
@@ -36,5 +39,5 @@ class Deploy(SQLModel, table=True):
     createdAt: date = Field(default=None)
     updatedAt: date = Field(default=None)
     tries: int
-    request_uuid: bytes = Field(index=True, foreign_key="request.uuid")
+    request_uuid: bytes = Field(index=True, foreign_key="requests.uuid")
     request: Request = Relationship(back_populates="deploys")
