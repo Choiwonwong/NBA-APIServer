@@ -20,14 +20,14 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: kubernetes.io/arch
+                  - key: io/arch
                     operator: In
                     values:
                       - amd64
                       - arm64
       containers:
         - name: nba-api
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-1.2.0
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-1.2.1
           ports:
             - name: http
               containerPort: 8000
@@ -76,7 +76,7 @@ spec:
               #   mountPath: "/root/.aws/"
               #   readOnly: true
       nodeSelector:
-        kubernetes.io/os: linux
+        io/os: linux
       volumes:
         - name: nba-api-ca
           secret:
@@ -92,10 +92,10 @@ metadata:
   name: nba-api-service
   namespace: api
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-    service.beta.kubernetes.io/aws-load-balancer-subnets: nba-public1, nba-public2, nba-public3
+    service.beta.io/aws-load-balancer-type: external
+    service.beta.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.io/aws-load-balancer-scheme: internet-facing
+    service.beta.io/aws-load-balancer-subnets: nba-public1, nba-public2, nba-public3
   labels:
     app: nba-api
 spec:

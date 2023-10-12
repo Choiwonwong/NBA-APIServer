@@ -1,6 +1,7 @@
 from fastapi import APIRouter
-from api.services import deploy
-from api.services import provision
+from api.controller.process import processController
+from api.controller.provision import provisionController
+from api.controller.deploy import deployController
 
 router = APIRouter()
 

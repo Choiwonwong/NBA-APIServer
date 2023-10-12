@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.endpoints import requests, webhook
+from api.endpoints import requests, webhook, test
 
 from api.models.connection import Base, engine, CoreV1Api_client, BatchV1Api_client # services에 포함될 것
 import yaml # services에 포함될 것
@@ -26,6 +26,7 @@ app.add_middleware(
 async def get_namespaces():
     try:
         namespaces = CoreV1Api_client.list_namespace()
+        
         namespace_names = [namespace.metadata.name for namespace in namespaces.items]
         
         return {
@@ -84,4 +85,5 @@ def create_kubernetes_job():
 #         db.close()
 
 app.include_router(requests.router , prefix='/api/requests')
-app.include_router(webhook.router , prefix='/api.webhook')
+app.include_router(webhook.router , prefix='/api/webhook')
+app.include_router(test.router , prefix='/test-1013')

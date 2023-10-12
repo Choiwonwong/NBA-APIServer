@@ -6,7 +6,7 @@ from datetime import datetime as date
 # Create a new request
 def create_request(session: Session, request_data: dict) -> Request:
     request_dict = request_data.dict()
-    new_request = Request(**request_dict, progress="처리 시작", processState="진행 중", createdAt=date.now(), updatedAt=date.now(), tries=0, )
+    new_request = Request(**request_dict, progress="처리 단계", processState="시작", createdAt=date.now(), updatedAt=date.now(), tries=0, )
     session.add(new_request)
     session.commit()
     session.refresh(new_request)
