@@ -25,7 +25,7 @@ def get_session() -> Session:
         session.close()
 
 eks_url = os.environ.get('EKS_URL')
-eks_token = os.environ.get('EKS_TOKEN')
+eks_token = os.environ.get('token')
 
 configuration = client.Configuration()
 
