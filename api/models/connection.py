@@ -4,14 +4,14 @@ from sqlalchemy.orm import sessionmaker, Session
 from kubernetes import client
 import os
 
-# user = os.environ["DB_USER"]
-# password = os.environ["DB_PASS"]
-# host = os.environ["DB_HOST"]
-# port = os.environ["DB_PORT"]
-# database = os.environ["DB_NAME"]
+user = os.environ["DB_USER"]
+password = os.environ["DB_PASS"]
+host = os.environ["DB_HOST"]
+port = os.environ["DB_PORT"]
+database = os.environ["DB_NAME"]
 
-# SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}"
-SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://root:test1234@localhost:3306/nba"
+SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}"
+# SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://root:test1234@localhost:3306/nba"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
