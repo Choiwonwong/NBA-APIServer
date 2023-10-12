@@ -41,5 +41,5 @@ def deleteRequest(request_id: int, session: Session = Depends(get_session)):
     return {"message": "Request deleted successfully"}
 
 @router.get('/{request_id}/logs')
-async def getRequestLogs():
-    return {"Message": "Hello World"}
+async def getRequestLogs(request_id: int):
+    return {"Message": f"Hello World: {request_id}"}

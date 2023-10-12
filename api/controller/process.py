@@ -3,8 +3,8 @@ from kubernetes.client.rest import ApiException
 
 class processController:
     def __init__(self):
-        self.coreV1client = CoreV1Api_client()
-        self.batchV1client = BatchV1Api_client()
+        self.coreV1client = CoreV1Api_client
+        self.batchV1client = BatchV1Api_client
 
     def create_namespace(self, namespace):
         v1 = self.coreV1client
@@ -23,7 +23,8 @@ class processController:
             string_data={
                 "AWS_ACCESS_KEY_ID": aws_access_key,
                 "AWS_SECRET_ACCESS_KEY": aws_secret_key,
-                "AWS_DEFAULT_REGION": "ap-northeast-2"
+                "AWS_DEFAULT_REGION": "ap-northeast-2",
+                "AWS_DEFAULT_OUTPUT": "json"
             }
         )
         try:

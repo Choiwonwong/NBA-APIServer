@@ -5,8 +5,8 @@ import yaml
 class provisionController:
     def __init__(self, namespace):
         self.namespace = namespace
-        self.coreV1client = CoreV1Api_client()
-        self.batchV1client = BatchV1Api_client()
+        self.coreV1client = CoreV1Api_client
+        self.batchV1client = BatchV1Api_client
 
     def create_configmap(self, name, data):
         v1 = self.coreV1client
