@@ -8,13 +8,10 @@ from sqlalchemy.orm import Session
 
 router = APIRouter()
 
-
-
 @router.post("/fullprovisiontest/{id}", tags=["[1013]test"])
 async def full_provision_test(id: int, request_body: RequestsCreate, session: Session = Depends(get_session)):
     create_request(session=session, request_data=request_body)
     namespace = "test-" + str(id)
-
     try:
         # 프로세스와 프로비젼 컨트롤러 인스턴스 생성
         process = processController()

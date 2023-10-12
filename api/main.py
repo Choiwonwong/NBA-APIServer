@@ -24,19 +24,19 @@ app.add_middleware(
 
 @app.get('/')
 async def get_namespaces():
-    try:
-        namespaces = CoreV1Api_client.list_namespace()
-        
-        namespace_names = [namespace.metadata.name for namespace in namespaces.items]
-        
-        return {
-            "message": "List of Kubernetes namespaces",
-            "namespaces": namespace_names
-        }
-    except Exception as e:
-        return {
-            "error": f"An error occurred: {str(e)}"
-        }
+    # try:
+    namespaces = CoreV1Api_client.list_namespace()
+    
+    namespace_names = [namespace.metadata.name for namespace in namespaces.items]
+    
+    return {
+        "message": "List of Kubernetes namespaces",
+        "namespaces": namespace_names
+    }
+    # except Exception as e:
+    #     return {
+    #         "error": f"An error occurred: {str(e)}"
+    #     }
     
 @app.post('/test')
 def createResquest():
@@ -75,14 +75,6 @@ def create_kubernetes_job():
     except Exception as e:
         print("Error creating Job:", str(e))
         return {"Error": str(e)}
-
-# Dependency
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
 
 app.include_router(requests.router , prefix='/api/requests')
 app.include_router(webhook.router , prefix='/api/webhook')

@@ -15,76 +15,28 @@ spec:
       labels:
         app: nba-api
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: io/arch
-                    operator: In
-                    values:
-                      - amd64
-                      - arm64
       containers:
         - name: nba-api
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-1.2.1
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:test-1.2.2
           ports:
             - name: http
               containerPort: 8000
           imagePullPolicy: IfNotPresent
-          env:
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: nba-rds-credentials-secret
-                  key: DB_USER
-            - name: DB_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: nba-rds-credentials-secret
-                  key: DB_PASS
-            - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: nba-rds-credentials-secret
-                  key: DB_HOST
-            - name: DB_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: nba-rds-credentials-secret
-                  key: DB_PORT
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: nba-rds-credentials-secret
-                  key: DB_NAME
-            - name: EKS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: nba-eks-url
-                  key: eks_url
-            - name: EKS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: nba-api-sa
-                  key: token
+          envFrom:
+            - secretRef:
+                name: nba-rds-credentials-secret
+            - secretRef:
+                name: nba-eks-url
+            - secretRef:
+                name: nba-api-sa
           volumeMounts:
             - name: nba-api-ca
               mountPath: "/root/.kube/"
               readOnly: true
-              # - name: nba-aws-credentials
-              #   mountPath: "/root/.aws/"
-              #   readOnly: true
-      nodeSelector:
-        io/os: linux
       volumes:
         - name: nba-api-ca
           secret:
             secretName: nba-api-sa
-      # - name: nba-aws-credentials
-      #   secret:
-      #     secretName: nba-aws-credentials
-
 ---
 apiVersion: v1
 kind: Service
@@ -92,10 +44,9 @@ metadata:
   name: nba-api-service
   namespace: api
   annotations:
-    service.beta.io/aws-load-balancer-type: external
-    service.beta.io/aws-load-balancer-nlb-target-type: ip
-    service.beta.io/aws-load-balancer-scheme: internet-facing
-    service.beta.io/aws-load-balancer-subnets: nba-public1, nba-public2, nba-public3
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
   labels:
     app: nba-api
 spec:
