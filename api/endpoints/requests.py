@@ -4,18 +4,18 @@ from api.services import provision
 
 router = APIRouter()
 
-@router.get('/quests')
-async def get_quests():
+@router.get('/')
+async def get_all_requests():
     return {"Message": "Hello World"}
 
-@router.get('/quests/{quest_id}')
-async def get_quest():
+@router.get('/{request_id}')
+async def get_request():
     return {"Message": "Hello World"}
 
-@router.post('/quests')
-async def create_quest():
+@router.post('/')
+async def create_request():
     return {"Message": "Hello World"}
 
-@router.get('/quests/{quest_id}/logs')
-async def get_quest_logs():
+@router.get('/{request_id}/logs')
+async def get_request_logs():
     return {"Message": "Hello World"}

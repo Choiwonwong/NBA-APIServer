@@ -18,7 +18,6 @@ pipeline {
                     url: 'https://github.com/Choiwonwong/NBA-APIServer.git'
             }
         }
-        
         stage('build') {
             steps {
                 sh '''
@@ -26,7 +25,6 @@ pipeline {
         		 '''
             }
         }
-    
         stage('upload aws ECR') {
             steps {                
                 script {
@@ -36,7 +34,6 @@ pipeline {
                 }
             } 
         }
-
         stage('Deploy in NBA EKS') {
             steps {                
                 sh 'kubectl apply -f manifest/deploy.yaml'

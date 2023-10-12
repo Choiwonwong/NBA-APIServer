@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.endpoints.routes import router
+from api.endpoints import requests, webhook
 
 from api.models.connection import Base, engine, CoreV1Api_client, BatchV1Api_client # services에 포함될 것
 import yaml # services에 포함될 것
@@ -83,4 +83,5 @@ def create_kubernetes_job():
 #     finally:
 #         db.close()
 
-app.include_router(router , prefix='/api')
+app.include_router(requests.router , prefix='/api/requests')
+app.include_router(webhook.router , prefix='/api.webhook')
