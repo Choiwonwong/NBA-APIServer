@@ -1,24 +1,14 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: nginx
-  namespace: test-1
+  name: full-eks
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-        - name: nginx
-          image: public.ecr.aws/nginx/nginx:1.23
-          ports:
-            - name: tcp
-              containerPort: 80
-          envFrom:
-            - secretRef:
-                name: aws-credentials
+  containers:
+  - name: full-eks-ctn
+    image: kimdoran/ubuntu-terraform:5.0
+    command: ["/bin/sh", "-c"]
+    args: ["/provision/1013test.sh"]
+    envFrom:
+    - secretRef:
+        name: aws-credentials
+  restartPolicy: Never

@@ -52,8 +52,8 @@ def deploy_test(id: int, session: Session = Depends(get_session)):
     currentRequest = update_request(session=session, request=currentRequest, request_data={"progress": "배포", "deployState": "시작"})
     try:
         deploy = deployController(namespace=namespace)
-        deploy.createConfigmap(name="test-configmap-"+str(id))
-        deploy.createJob(name="test-deployment-"+str(id), configmap_name="test-configmap-"+str(id))
+        deploy.createConfigmap()
+        deploy.createJob(name="test-deployment-"+str(id))
     except Exception as e:
         print(e)
         data = {"deployState": "실패"}

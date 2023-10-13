@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: test-deploy-config
 data:
-  AWS_EKS_NAME: nba-eks
+  AWS_EKS_NAME: test-eks
   AWS_NAMESPACE: eks-test
   AWS_SUBNET: nba-public1, nba-public2, nba-public3
   DEPLOY_NAME: test-deploy
