@@ -14,36 +14,27 @@ async def full_provision_test(id: int, request_body: RequestsCreate, session: Se
     currentRequest =create_request (session=session, request_data=request_body)
     namespace = "test-" + str(id)
     try:
-        # 프로세스와 프로비젼 컨트롤러 인스턴스 생성
         process = processController()
-
-        # 네임스페이스 생성
         process.createNamespace(namespace=namespace)
-
-        # AWS 자격 증명 생성
         process.createAwsCredentials(
             namespace, request_body.awsAccessKey, request_body.awsSecretKey
         )
     except Exception as e:
-        # 에러가 발생하면 HTTP 예외를 발생시키고 로그를 출력합니다.
         print(e)
         data = {"processState": "실패"}
         update_request(session=session, request= currentRequest, request_data=data)
         raise HTTPException(status_code=500, detail="처리 중 오류 발생")
 
-    # 프로비저닝 진행 중 상태 업데이트
     provision = provisionController(namespace=namespace)
 
     currentRequest = update_request(
         session=session, request=currentRequest, request_data={"progress": "프로비저닝", "processState": "성공", "provisionState": "시작"}
     )
     try:
-        # Pod 생성
         pod_name = "test-full-provision-"+str(id)
         provision.createPod(name=pod_name)
 
     except Exception as e:
-        # 에러가 발생하면 요청 상태를 실패로 업데이트하고 HTTP 예외를 발생시킵니다.
         update_request(session=session, request=currentRequest, request_data={"progress": "프로비저닝", "provisionState": "실패"})
         print(e)
         raise HTTPException(status_code=500, detail="Pod 생성 중 오류 발생")
@@ -61,7 +52,8 @@ def deploy_test(id: int, session: Session = Depends(get_session)):
     currentRequest = update_request(session=session, request=currentRequest, request_data={"progress": "배포", "deployState": "시작"})
     try:
         deploy = deployController(namespace=namespace)
-        deploy.createJob(name="test-deployment-"+str(id))
+        deploy.createConfigmap(name="test-configmap-"+str(id))
+        deploy.createJob(name="test-deployment-"+str(id), configmap_name="test-configmap-"+str(id))
     except Exception as e:
         print(e)
         data = {"deployState": "실패"}

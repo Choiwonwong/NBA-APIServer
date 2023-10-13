@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-deploy-config
+data:
+  AWS_EKS_NAME: nba-eks
+  AWS_NAMESPACE: eks-test
+  AWS_SUBNET: nba-public1, nba-public2, nba-public3
+  DEPLOY_NAME: test-deploy
+  DEPLOY_NAMESPACE: eks-test
+  DEPLOY_REPLICAS: "3"
+  DEPLOY_CONTAINER_NAME: test-ctn
+  DEPLOY_CONTAINER_IMAGE: public.ecr.aws/s2t1t5c1/seomj-test:2.0
+  DEPLOY_CONTAINER_PORT: "80"
+  SVC_NAME: test-svc
+  SVC_NAMESPACE: eks-test
+  SVC_PROTOCOL: TCP
+  SVC_PORT: "80"
+  SVC_TARGETPORT: "80"

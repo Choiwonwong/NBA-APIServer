@@ -1,14 +1,19 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pi
+  name: deployment-job
   namespace: default
 spec:
   template:
     spec:
       containers:
-      - name: pi
-        image: perl:5.34.0
-        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+      - name: my-container
+        image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-quest-deploy:0.0.1  # 사용할 컨테이너 이미지
+        command: ["/bin/sh", "-c", "/deploy/deploy_test.sh"]
+        envFrom:
+        - secretRef:
+            name: aws-credentials
+        - configMapRef:
+            name: test-deploy-config
       restartPolicy: Never
   backoffLimit: 4
