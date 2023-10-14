@@ -2,10 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints import requests, webhook, test
 
-from api.models.connection import Base, engine, CoreV1Api_client, BatchV1Api_client # services에 포함될 것
-import yaml # services에 포함될 것
-
-Base.metadata.create_all(bind=engine)
+from api.models.connection import CoreV1Api_client
 
 app = FastAPI()
 
@@ -21,6 +18,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(requests.router , prefix='/api/requests', deprecated=True)
+app.include_router(webhook.router , prefix='/api/webhook', deprecated=True)
+app.include_router(test.router , prefix='/test-1013', deprecated=True)
 
 @app.get('/')
 async def get_namespaces():
@@ -45,7 +46,6 @@ async def get_namespaces():
 @app.get('/pods')
 async def get_pods():
     try:
-        # Check if the connection to the Kubernetes client is working
         if CoreV1Api_client:
             pods = CoreV1Api_client.list_pod_for_all_namespaces()
             pod_names = [pod.metadata.name for pod in pods.items]
@@ -61,7 +61,3 @@ async def get_pods():
         return {
             "error": f"An error occurred: {str(e)}"
         }
-
-app.include_router(requests.router , prefix='/api/requests')
-app.include_router(webhook.router , prefix='/api/webhook')
-app.include_router(test.router , prefix='/test-1013')

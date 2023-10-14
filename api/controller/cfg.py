@@ -61,11 +61,12 @@ class ConfigController:
         except ApiException as e:
             print(f"Error creating AWS credentials Secret: {e}")
             return False
-
-# 이렇게 시크릿이 들어와야함.
-#{
-#    'AWS_ACCESS_KEY_ID': aws_access_key,
-#    'AWS_SECRET_ACCESS_KEY': aws_secret_key,
-#    'AWS_DEFAULT_REGION': 'ap-northeast-2',
-#    'AWS_DEFAULT_OUTPUT': 'json'
-#}
+        
+    def getAPIEndPoint(self):
+        v1 = client.CoreV1Api(self.k8sClient)
+        try:
+            api_endpoint = v1.read_namespaced_service("nba-api-service", "api").spec.external_ips[0]
+            return api_endpoint
+        except ApiException as e:
+            print(f"Error getting API endpoint: {e}")
+            return False

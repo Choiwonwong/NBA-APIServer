@@ -1,11 +1,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: full-eks
-  namespace: default
+  name: provision
 spec:
   containers:
-  - name: full-eks-ctn
+  - name: provision-ctn
     image: kimdoran/ubuntu-terraform:6.0
     command: ["/bin/sh", "-c"]
     args: ["/provision/1013test.sh"]

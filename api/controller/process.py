@@ -23,12 +23,13 @@ class ProcessController:
         except Exception as e:
             raise Exception(f"An error occurred while processing metadata: {str(e)}")
 
-
         processedQuest['provision']['cluster_name'] = self.quest.get('클러스터_명', f"eks-{self.title}")
         processedQuest['provision']['cidr'] = self.quest.get('네트워크_영역', '10.0.0.0/16')
         processedQuest['provision']['public_subnet_count'] = self.quest.get('인터넷_영역_수', 2)
         processedQuest['provision']['private_subnet_count'] = self.quest.get('보안_영역_수', 2)
     
+
+        processedQuest['deploy']['cluster_name'] = processedQuest['provision']['cluster_name']
         processedQuest['deploy']['image_name'] = self.quest.get('앱_이미지', 'nginx:latest')
         processedQuest['deploy']['port'] = self.quest.get('앱_포트', 80)
         processedQuest['deploy']['service_type'] = self.quest.get('앱_노출_방식', 'LoadBalancer')

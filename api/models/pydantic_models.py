@@ -28,3 +28,9 @@ class RequestsOutput(BaseModel): # 웹서버로 전달을 해주는 모델, 진�
     deployState: str | None
     emessage: str | None = None
     tries: int
+
+class WebHook(BaseModel):
+    request_id: int
+    progress: str
+    state: str
+    emessage: str | None = None
