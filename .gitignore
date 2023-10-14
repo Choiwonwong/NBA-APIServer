@@ -169,3 +169,5 @@ Test
 __pycache__
 pyvenv.cfg
 .aws
+
+test.py
