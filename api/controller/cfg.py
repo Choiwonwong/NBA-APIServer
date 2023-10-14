@@ -12,12 +12,16 @@ class ConfigController:
         self.k8sClient = K8s_client
 
     def createNameSpace(self) -> bool: 
-        v1 = self.k8sClient
-        namespace = v1.client.V1Namespace(
-            metadata=v1.client.V1ObjectMeta(name=self.namespace)
-        )
+        v1 = client.CoreV1Api(self.k8sClient)
+        body = {
+            'apiVersion': 'v1',
+            'kind': 'Namespace',
+            'metadata': {
+                'name': self.namespace
+            }
+        }
         try:
-            v1.create_namespace(namespace)
+            v1.create_namespace(body=body)
             return True
         except ApiException as e:
             print(f"Error creating NS: {e}")
@@ -25,14 +29,13 @@ class ConfigController:
 
     def createCM(self, type: str, data: dict) -> bool:
         if type not in configType:
-            print("Invalid 'type' parameter. It must be 'provision' or 'deployemnt'.")
+            print("Invalid 'type' parameter. It must be 'provision' or 'deploy'.")
             return False
             
         name = f"{type}-config"
         with open(f'api/controller/manifest/{type}-config.yaml', 'r') as manifest_file:
             configmap_manifest = yaml.safe_load(manifest_file)
             configmap_manifest['metadata']['name'] = name
-            configmap_manifest['metadata']['namespace'] = self.namespace
             for key, value in data.items():
                 configmap_manifest['data'][key] = value
             try:
@@ -44,15 +47,13 @@ class ConfigController:
                 return False
     
     def createSecret(self, name: str, data:dict):
-        name = f"{name}-secret"
+        name = f"{name}"
         v1 = client.CoreV1Api(self.k8sClient)
         secret = {
             'metadata': {
                 'name': name
             },
-            'stringData': {
-                data
-            }
+            'stringData': data
         }
         try:
             v1.create_namespaced_secret(self.namespace, secret)
@@ -65,7 +66,7 @@ class ConfigController:
     def getAPIEndPoint(self):
         v1 = client.CoreV1Api(self.k8sClient)
         try:
-            api_endpoint = v1.read_namespaced_service("nba-api-service", "api").spec.external_ips[0]
+            api_endpoint = v1.read_namespaced_service("nba-api-service", "api").status.load_balancer.ingress[0].hostname
             return api_endpoint
         except ApiException as e:
             print(f"Error getting API endpoint: {e}")

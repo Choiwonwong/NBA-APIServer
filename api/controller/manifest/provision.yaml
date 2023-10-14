@@ -5,10 +5,11 @@ metadata:
 spec:
   containers:
   - name: provision-ctn
-    image: kimdoran/ubuntu-terraform:6.0
-    command: ["/bin/sh", "-c"]
-    args: ["/provision/1013test.sh"]
+    image: nginx:latest
     envFrom:
     - secretRef:
         name: aws-credentials
-  restartPolicy: Never
+    - secretRef:
+        name: meta-data
+    - configMapRef:
+        name: provision-config

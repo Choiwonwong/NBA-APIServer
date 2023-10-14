@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.endpoints import requests, webhook, test
+from api.endpoints import requests, webhook
 
-from api.models.connection import CoreV1Api_client
+from api.models.connection import K8s_client
+from kubernetes import client
 
 app = FastAPI()
 
@@ -19,12 +20,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(requests.router , prefix='/api/requests', deprecated=True)
+app.include_router(requests.router , prefix='/api/requests')
 app.include_router(webhook.router , prefix='/api/webhook', deprecated=True)
-app.include_router(test.router , prefix='/test-1013', deprecated=True)
 
 @app.get('/')
 async def get_namespaces():
+    CoreV1Api_client = client.CoreV1Api(K8s_client)
     try:
         # Check if the connection to the Kubernetes client is working
         if CoreV1Api_client:
@@ -33,25 +34,6 @@ async def get_namespaces():
             return {
                 "message": "List of Kubernetes namespaces",
                 "namespaces": namespace_names
-            }
-        else:
-            return {
-                "error": "Kubernetes client connection not established."
-            }
-    except Exception as e:
-        return {
-            "error": f"An error occurred: {str(e)}"
-        }
-    
-@app.get('/pods')
-async def get_pods():
-    try:
-        if CoreV1Api_client:
-            pods = CoreV1Api_client.list_pod_for_all_namespaces()
-            pod_names = [pod.metadata.name for pod in pods.items]
-            return {
-                "message": "List of Kubernetes pods",
-                "pods": pod_names
             }
         else:
             return {

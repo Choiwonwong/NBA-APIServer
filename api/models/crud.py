@@ -5,7 +5,7 @@ from datetime import datetime as date
 # To requests Table
 # Create a new request
 def create_request(session: Session, request_data: dict) -> Request:
-    request_dict = request_data.dict()
+    request_dict = request_data
     new_request = Request(**request_dict, progress="처리 단계", processState="시작", createdAt=date.now(), updatedAt=date.now(), tries=0, )
     session.add(new_request)
     session.commit()

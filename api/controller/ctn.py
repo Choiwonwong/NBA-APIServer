@@ -12,7 +12,7 @@ class CTNController:
         with open('api/controller/manifest/provision.yaml', 'r') as manifest_file:
             pod_manifest = yaml.safe_load(manifest_file)
             try:
-                utils.create_from_dict(self.K8s_client, pod_manifest, namespace=self.namespace)
+                utils.create_from_dict(self.k8sClient, pod_manifest, namespace=self.namespace)
                 print(f"Pod created in namespace '{self.namespace}'.")
                 return True
             except ApiException as e:
@@ -23,7 +23,7 @@ class CTNController:
         with open('api/controller/manifest/deploy.yaml', 'r') as manifest_file:
             job_manifest = yaml.safe_load(manifest_file)
             try:
-                utils.create_from_dict(self.K8s_client, job_manifest, namespace=self.namespace)
+                utils.create_from_dict(self.k8sClient, job_manifest, namespace=self.namespace)
                 return True
             except ApiException as e:
                 print(f"Failed to create Job: {e.reason}")

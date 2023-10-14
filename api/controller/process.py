@@ -1,4 +1,4 @@
-import yaml, json, boto3
+import boto3
 from botocore.exceptions import NoCredentialsError
 
 class ProcessController:
@@ -10,32 +10,31 @@ class ProcessController:
     
     def processQuest(self):
         processedQuest = {}
-        processedQuest['metadata'] = {""}
-        processedQuest['provision'] = {""}
-        processedQuest['deploy'] = {""}
+        processedQuest['metadata'] = {}
+        processedQuest['provision'] = {}
+        processedQuest['deploy'] = {}
 
         try:
-            processedQuest['metadata']['title'] = self.title
+            processedQuest['metadata']['TITLE'] = self.title
             # processedQuest['metadata']['namespace'] = self.quest.get('namespace', '')
-            processedQuest['metadata']['region'] = self.quest.get('배포_지역_명', 'ap-northeast-2')
-            processedQuest['metadata']['access_key'] = self.access_key
-            processedQuest['metadata']['secret_key'] = self.secret_key
+            processedQuest['metadata']['REGION'] = self.quest.get('배포_지역_명', 'ap-northeast-2')
+            processedQuest['metadata']['ACCESS_KEY'] = self.access_key
+            processedQuest['metadata']['SECRET_KEY'] = self.secret_key
         except Exception as e:
             raise Exception(f"An error occurred while processing metadata: {str(e)}")
 
-        processedQuest['provision']['cluster_name'] = self.quest.get('클러스터_명', f"eks-{self.title}")
-        processedQuest['provision']['cidr'] = self.quest.get('네트워크_영역', '10.0.0.0/16')
-        processedQuest['provision']['public_subnet_count'] = self.quest.get('인터넷_영역_수', 2)
-        processedQuest['provision']['private_subnet_count'] = self.quest.get('보안_영역_수', 2)
+        processedQuest['provision']['CLSSTER_NAME'] = self.quest.get('클러스터_명', f"eks-{self.title}")
+        processedQuest['provision']['CIDR'] = self.quest.get('네트워크_영역', '10.0.0.0/16')
+        processedQuest['provision']['PUBLIC_SN_COUNT'] = self.quest.get('인터넷_영역_수', '2')
+        processedQuest['provision']['PRIVATE_SN_COUNT'] = self.quest.get('보안_영역_수', '2')
     
-
-        processedQuest['deploy']['cluster_name'] = processedQuest['provision']['cluster_name']
-        processedQuest['deploy']['image_name'] = self.quest.get('앱_이미지', 'nginx:latest')
-        processedQuest['deploy']['port'] = self.quest.get('앱_포트', 80)
-        processedQuest['deploy']['service_type'] = self.quest.get('앱_노출_방식', 'LoadBalancer')
-        processedQuest['deploy']['replicas'] = self.quest.get('앱_복제_수', 1)
-        processedQuest['deploy']['cpu'] = self.quest.get('앱_CPU_스펙', '0.5')
-        processedQuest['deploy']['memory'] = self.quest.get('앱_메모리_스펙', '512MiB')
+        # processedQuest['deploy']['cluster_name'] = processedQuest['provision']['cluster_name']
+        # processedQuest['deploy']['image_name'] = self.quest.get('앱_이미지', 'nginx:latest')
+        # processedQuest['deploy']['port'] = self.quest.get('앱_포트', 80)
+        # processedQuest['deploy']['service_type'] = self.quest.get('앱_노출_방식', 'LoadBalancer')
+        # processedQuest['deploy']['replicas'] = self.quest.get('앱_복제_수', 1)
+        # processedQuest['deploy']['cpu'] = self.quest.get('앱_CPU_스펙', '0.5')
+        # processedQuest['deploy']['memory'] = self.quest.get('앱_메모리_스펙', '512MiB')
 
         return processedQuest
     
@@ -57,18 +56,3 @@ class ProcessController:
         except Exception as e:
             print(f"An error occurred while checking AWS Credential: {str(e)}")
             return False
-        
-
-    # def createNamespace(self, namespace):
-    #     v1 = self.coreV1client
-    #     body = {
-    #         'metadata': {
-    #             'name': namespace
-    #         }
-    #     }
-    #     try:
-    #         v1.create_namespace(body=body)
-    #         print(f"Namespace '{namespace}' created.")
-    #     except ApiException as e:
-    #         print(f"Error creating namespace: {e}")
-    #         self.createNamespace(namespace=namespace + "-rescue")
