@@ -27,7 +27,6 @@ eks_url = os.environ.get('EKS_URL')
 eks_token = os.environ.get('token')
 
 configuration = client.Configuration()
-
 configuration.host = eks_url
 configuration.verify_ssl = True
 configuration.ssl_ca_cert = "/root/.kube/ca.crt"

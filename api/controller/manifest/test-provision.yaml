@@ -1,42 +1,15 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: nginx
-  namespace: test-1
+  name: provision
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-        - name: nginx
-          image: public.ecr.aws/nginx/nginx:1.23
-          ports:
-            - name: tcp
-              containerPort: 80
-          envFrom:
-            - secretRef:
-                name: aws-credentials
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: nginx
-#   namespace: test-1
-#   annotations:
-#     service.beta.kubernetes.io/aws-load-balancer-type: external
-#     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
-#     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-# spec:
-#   ports:
-#     - port: 80
-#       targetPort: 80
-#       protocol: TCP
-#   type: LoadBalancer
-#   selector:
-#     app: nginx
+  containers:
+  - name: provision-ctn
+    image: nginx:latest
+    envFrom:
+    - secretRef:
+        name: aws-credentials
+    - secretRef:
+        name: meta-data
+    - configMapRef:
+        name: provision-config

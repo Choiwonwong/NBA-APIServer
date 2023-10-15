@@ -3,8 +3,6 @@ from sqlalchemy.orm import Session
 from api.models.pydantic_models import RequestsUpdate, WebHook
 from api.models.connection import get_session
 from api.models.crud import get_request_by_id, update_request
-from api.controller.process import ProcessController
-from api.controller.cfg import ConfigController
 from api.controller.ctn import CTNController
 
 router = APIRouter()

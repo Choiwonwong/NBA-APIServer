@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from api.models.pydantic_models import RequestsUpdate, RequestsOutput
 from api.models.connection import get_session
@@ -22,9 +23,15 @@ def getOneRequest(request_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Request not found")
     return request
 
-@router.get('/{request_id}/logs')
-async def getRequestLogs(request_id: int):
-    return {"Message": f"Hello World: {request_id}"}
+@router.get('/{request_id}/{progress}/logs')
+async def getRequestLogs2(request_id: int, progress: str, session: Session = Depends(get_session)):
+    if progress not in ["provision", "deploy"]:
+        raise HTTPException(status_code=400, detail="Invalid progress")
+    request = get_request_by_id(session, request_id)
+    serviceNSName = f"quest-{request.id}"
+    ctnController = CTNController(namespace=serviceNSName)
+    response = StreamingResponse(ctnController.getLogsStreamer("provision"), media_type="text/event-stream")
+    return response
 
 @router.put('/{request_id}', response_model=RequestsOutput, tags=["request"])
 def updateRequest(request_id: int, request_data: RequestsUpdate, session: Session = Depends(get_session)):
