@@ -71,6 +71,7 @@ async def createRequest(
     }
 
     request = create_request(session=session, request_data=request_data)
+    request = get_request_by_id(session, request.id)
     serviceNSName = f"quest-{request.id}"
     aws_credentials = {
         "AWS_ACCESS_KEY_ID": quest_data['AWS_계정_접근키'],
@@ -126,11 +127,11 @@ async def createRequest(
         update_request(session=session, request= request, request_data=data)
         raise HTTPException(status_code=500, detail="Failed to create Provision ConfigMap.")
     
-    # resultDeployCM = configController.createCM(type="deploy", data=processedQuest['deploy'])
-    # if not resultDeployCM:
-    #     data = {"processState": "실패", "emssage": "Failed to create Deploy ConfigMap."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Deploy ConfigMap.")
+    resultDeployCM = configController.createCM(type="deploy", data=processedQuest['deploy'])
+    if not resultDeployCM:
+        data = {"processState": "실패", "emssage": "Failed to create Deploy ConfigMap."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Deploy ConfigMap.")
     
     ctnController = CTNController(namespace=serviceNSName)
     update_request(session=session, request= request, request_data={"processState": "성공", "progress": "프로비저닝", "provisionState": "진행 중"})
@@ -140,5 +141,4 @@ async def createRequest(
         data = {"provisionState": "실패", "emssage": "Failed to create Provision Pod."}
         update_request(session=session, request= request, request_data=data)
         raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
-    
     return request
