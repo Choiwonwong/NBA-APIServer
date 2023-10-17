@@ -8,9 +8,10 @@ pipeline {
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential-v2'
         IMAGE_NAME = 'nba-api'
-        IMAGE_VERSION = "test-1.3.2"
+        IMAGE_VERSION = "test-1.3.3"
     }
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main',
