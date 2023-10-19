@@ -37,7 +37,7 @@ pipeline {
         }
         stage('Deploy in NBA EKS') {
             steps {                
-                sh 'kubectl apply -f manifest/deploy.yaml'
+                sh 'kubectl apply -f manifest/deployment.yaml'
             } 
         }
     }
