@@ -35,7 +35,7 @@ spec:
               readOnly: true
           env:
             - name: WEB_URL
-              valueForm:
+              valueFrom:
                 secretKeyRef:
                   name: web-server-url-secret
                   key: WEB_DNS
