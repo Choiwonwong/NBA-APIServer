@@ -4,12 +4,16 @@ from api.endpoints import requests, webhook
 
 from api.models.connection import K8s_client
 from kubernetes import client
+import os
 
 app = FastAPI()
 
+webOrigins= os.environ.get('WEB_URL')
 origins = [
     "http://localhost",  # React 앱의 주소에 맞게 수정
     "http://localhost:3000",  # React 앱의 기본 포트에 맞게 수정
+    webOrigins,
+    "http://"+webOrigins
 ]
 
 app.add_middleware(

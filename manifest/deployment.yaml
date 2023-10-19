@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nba-api
+  namespace: api
+  labels:
+    app: nba-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nba-api
+  template:
+    metadata:
+      labels:
+        app: nba-api
+    spec:
+      containers:
+        - name: nba-api
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:1.5.0
+          ports:
+            - name: http
+              containerPort: 8000
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: nba-rds-credentials-secret
+            - secretRef:
+                name: nba-eks-url
+            - secretRef:
+                name: nba-api-sa
+          volumeMounts:
+            - name: nba-api-ca
+              mountPath: "/root/.kube/"
+              readOnly: true
+          env:
+            - name: WEB_URL
+              valueForm:
+                secretKeyRef:
+                  name: web-server-url-secret
+                  key: WEB_DNS
+      volumes:
+        - name: nba-api-ca
+          secret:
+            secretName: nba-api-sa
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nba-api-service
+  namespace: api
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+  labels:
+    app: nba-api
+spec:
+  selector:
+    app: nba-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer

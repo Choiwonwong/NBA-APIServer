@@ -171,3 +171,4 @@ pyvenv.cfg
 .aws
 
 test.py
+manifest/service.yaml
