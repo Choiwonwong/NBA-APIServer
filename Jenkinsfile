@@ -8,7 +8,7 @@ pipeline {
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential-v2'
         IMAGE_NAME = 'nba-api'
-        IMAGE_VERSION = "test-1.3.3"
+        IMAGE_VERSION = "1.4.0"
     }
     stages {
 

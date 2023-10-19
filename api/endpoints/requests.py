@@ -142,3 +142,55 @@ async def createRequest(
         update_request(session=session, request= request, request_data=data)
         raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
     return request
+
+@router.post('/check')
+async def checkQuest(file: UploadFile): 
+    response = {
+        "result": "danger",
+        "message": None,
+        "processedQuest": None
+    }
+    if file.filename == "Quest.yaml":
+        try:
+            content = await file.read()
+            quest_data = yaml.safe_load(content)
+            # 여기에서 quest_data를 검사하는 로직을 추가해야 함
+            # Controller 없이 해야 할 듯
+        except yaml.YAMLError as e:
+            response["message"] = "YAML 형식이 잘못되었습니다."
+            raise HTTPException(status_code=400, detail=response)
+    else:
+        response["message"] = "YAML 형식이 잘못되었습니다."
+        raise HTTPException(status_code=400, detail=response)
+    
+    aws_credentials = {
+        "AWS_ACCESS_KEY_ID": quest_data['AWS_계정_접근키'],
+        "AWS_SECRET_ACCESS_KEY": quest_data['AWS_계정_비밀키'],
+        "AWS_DEFAULT_REGION": quest_data['배포_지역_명'],
+        "AWS_DEFAULT_OUTPUT": "json"
+    }
+    
+    processController = ProcessController(quest=quest_data, 
+                                          access_key= aws_credentials["AWS_ACCESS_KEY_ID"],
+                                          secret_key=aws_credentials["AWS_SECRET_ACCESS_KEY"], 
+                                          title=quest_data["요청_제목"],)
+    
+    try:
+        # processedQuest = processController.processQuest()
+        # response["processedQuest"] = processedQuest
+        del quest_data['AWS_계정_접근키']
+        del quest_data['AWS_계정_비밀키']
+        response["processedQuest"] = quest_data
+
+    except Exception as e:
+        response["message"] = "Quest.yaml을 다시 확인해주세요"
+        raise HTTPException(status_code=400, detail=response)
+    
+    resultAWSCR = processController.checkAWSCredential()
+    if not resultAWSCR:
+        response["message"] = "AWS 인증 정보에 문제가 발생했습니다."
+        raise HTTPException(status_code=400, detail=response)
+    
+    response["result"] = "success"
+    response["message"] = "모든 검사가 정상적입니다."
+    return response
