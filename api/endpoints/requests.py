@@ -7,6 +7,7 @@ from api.models.crud import create_request, get_request_by_id, get_requests, upd
 from api.controller.process import ProcessController
 from api.controller.cfg import ConfigController
 from api.controller.ctn import CTNController
+from api.controller.process import preProcess, get_nested_value
 import yaml
 
 router = APIRouter()
@@ -70,113 +71,120 @@ async def createRequest(
     request = create_request(session=session, request_data=request_data)
     request = get_request_by_id(session, request.id)
 
+    serviceNSName = f"quest-{request.id}"
+    aws_credentials = {
+        "AWS_ACCESS_KEY_ID": quest_data['AWS_계정_접근키'],
+        "AWS_SECRET_ACCESS_KEY": quest_data['AWS_계정_비밀키'],
+        "AWS_DEFAULT_REGION": quest_data['배포_지역_명'],
+        "AWS_DEFAULT_OUTPUT": "json"
+    }
+    processController = ProcessController(quest=quest_data, 
+                                          access_key= aws_credentials["AWS_ACCESS_KEY_ID"],
+                                          secret_key=aws_credentials["AWS_SECRET_ACCESS_KEY"], 
+                                          title=quest_data["요청_제목"],)
+    try:
+        processedQuest = processController.processQuest()
+    except Exception as e:
+        print(e)
+        data = {"processState": "실패", "emessage": "An error occurred while processing Quest."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="처리 중 오류 발생")
+    
+    configController = ConfigController(namespace=serviceNSName)
+    resultNS = configController.createNameSpace()
+    if not resultNS:
+        data = {"processState": "실패", "emessage": "Failed to create Namespace."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Namespace.")
+
+    resultAWSCredentialSecret = configController.createSecret(name="aws-credentials", data=aws_credentials)
+    if not resultAWSCredentialSecret:
+        data = {"processState": "실패", "emessage": "Failed to create AWS credentials Secret."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create AWS credentials Secret.")
+    
+    api_endpoint = configController.getAPIEndPoint()
+    metadata = {
+        "ID": str(request.id),
+        "API_ENDPOINT": f"{api_endpoint}:8000"
+    }
+    resultMetadataSecret = configController.createSecret(name="meta-data", data=metadata)
+    if not resultMetadataSecret:
+        data = {"processState": "실패", "emessage": "Failed to create Metadata Secret."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Metadata Secret.")
+    
+    resultProvisionCM = configController.createCM(type="provision", data=processedQuest['provision'])
+    if not resultProvisionCM:
+        data = {"processState": "실패", "emssage": "Failed to create Provision ConfigMap."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Provision ConfigMap.")
+    
+    resultDeployCM = configController.createCM(type="deploy", data=processedQuest['deploy'])
+    if not resultDeployCM:
+        data = {"processState": "실패", "emessage": "Failed to create Deploy ConfigMap."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Deploy ConfigMap.")
+    
+    ctnController = CTNController(namespace=serviceNSName)
+    update_request(session=session, request= request, request_data={"processState": "성공", "progress": "프로비저닝", "provisionState": "진행 중"})
+
+    resultProvisionPod = ctnController.createPod()
+    if not resultProvisionPod:
+        data = {"provisionState": "실패", "emessage": "Failed to create Provision Pod."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
     return request
-    # serviceNSName = f"quest-{request.id}"
-    # aws_credentials = {
-    #     "AWS_ACCESS_KEY_ID": quest_data['AWS_계정_접근키'],
-    #     "AWS_SECRET_ACCESS_KEY": quest_data['AWS_계정_비밀키'],
-    #     "AWS_DEFAULT_REGION": quest_data['배포_지역_명'],
-    #     "AWS_DEFAULT_OUTPUT": "json"
-    # }
-    # processController = ProcessController(quest=quest_data, 
-    #                                       access_key= aws_credentials["AWS_ACCESS_KEY_ID"],
-    #                                       secret_key=aws_credentials["AWS_SECRET_ACCESS_KEY"], 
-    #                                       title=quest_data["요청_제목"],)
-    # try:
-    #     processedQuest = processController.processQuest()
-    # except Exception as e:
-    #     print(e)
-    #     data = {"processState": "실패", "emessage": "An error occurred while processing Quest."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="처리 중 오류 발생")
-    
-    # configController = ConfigController(namespace=serviceNSName)
-    # resultNS = configController.createNameSpace()
-    # if not resultNS:
-    #     data = {"processState": "실패", "emessage": "Failed to create Namespace."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Namespace.")
-
-    # resultAWSCredentialSecret = configController.createSecret(name="aws-credentials", data=aws_credentials)
-    # if not resultAWSCredentialSecret:
-    #     data = {"processState": "실패", "emessage": "Failed to create AWS credentials Secret."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create AWS credentials Secret.")
-    
-    # api_endpoint = configController.getAPIEndPoint()
-    # metadata = {
-    #     "ID": str(request.id),
-    #     "API_ENDPOINT": f"{api_endpoint}:8000"
-    # }
-    # resultMetadataSecret = configController.createSecret(name="meta-data", data=metadata)
-    # if not resultMetadataSecret:
-    #     data = {"processState": "실패", "emessage": "Failed to create Metadata Secret."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Metadata Secret.")
-    
-    # resultProvisionCM = configController.createCM(type="provision", data=processedQuest['provision'])
-    # if not resultProvisionCM:
-    #     data = {"processState": "실패", "emssage": "Failed to create Provision ConfigMap."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Provision ConfigMap.")
-    
-    # resultDeployCM = configController.createCM(type="deploy", data=processedQuest['deploy'])
-    # if not resultDeployCM:
-    #     data = {"processState": "실패", "emssage": "Failed to create Deploy ConfigMap."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Deploy ConfigMap.")
-    
-    # ctnController = CTNController(namespace=serviceNSName)
-    # update_request(session=session, request= request, request_data={"processState": "성공", "progress": "프로비저닝", "provisionState": "진행 중"})
-
-    # resultProvisionPod = ctnController.createPod()
-    # if not resultProvisionPod:
-    #     data = {"provisionState": "실패", "emssage": "Failed to create Provision Pod."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
-    # return request
 
 @router.post('/check')
 async def checkQuest(file: UploadFile): 
     response = {
         "result": "danger",
-        "message": None,
-        "processedQuest": None
+        "message": None
     }
     if file.filename == "Quest.yaml":
         try:
             content = await file.read()
-            quest_data = yaml.safe_load(content)
-            # 여기에서 quest_data를 검사하는 로직을 추가해야 함
-            # Controller 없이 해야 할 듯
+            raw_quest_data = yaml.safe_load(content)
         except yaml.YAMLError as e:
             response["message"] = "YAML 형식이 잘못되었습니다."
             raise HTTPException(status_code=400, detail=response)
     else:
-        response["message"] = "YAML 형식이 잘못되었습니다."
+        response["message"] = "Quest.yaml을 입력해주세요."
         raise HTTPException(status_code=400, detail=response)
-    
-    processController = ProcessController(quest=quest_data, 
-                                          access_key= quest_data['AWS_계정_접근키'],
-                                          secret_key=quest_data['AWS_계정_비밀키'], 
-                                          title=quest_data["요청_제목"],)
     
     try:
-        # processedQuest = processController.processQuest()
-        # response["processedQuest"] = processedQuest
-        del quest_data['AWS_계정_접근키']
-        del quest_data['AWS_계정_비밀키']
-        response["processedQuest"] = quest_data
-
+        quest_data = preProcess(raw_quest_data)
     except Exception as e:
-        response["message"] = "Quest.yaml을 다시 확인해주세요"
-        raise HTTPException(status_code=400, detail=response)
+        raise HTTPException(status_code=400, detail="YAML 내부 형식이 잘못되었습니다.")
+    
+    required_fields = [
+        "요청명",
+        "AWS인증정보.AWS계정접근키",
+        "AWS인증정보.AWS계정비밀키",
+        "배포요청.이미지명",
+        "배포요청.포트번호"
+    ]
+    
+    for field_path in required_fields:
+        if not get_nested_value(quest_data, field_path):
+            response["message"] = f"'{field_path.replace('.', ' > ')}'가 없습니다."
+            raise HTTPException(status_code=400, detail=response)
+    
+
+    processController = ProcessController(quest=quest_data, 
+                                          access_key= quest_data['AWS인증정보']['AWS계정접근키'],
+                                          secret_key=quest_data['AWS인증정보']['AWS계정비밀키'], 
+                                          title=quest_data["요청명"],)
     
     resultAWSCR = processController.checkAWSCredential()
     if not resultAWSCR:
         response["message"] = "AWS 인증 정보에 문제가 발생했습니다."
         raise HTTPException(status_code=400, detail=response)
-    
+
+    # # 전처리 - 이자 성공
+    processedQuest = processController.processQuestU()
+    response["userQuestYaml"] = processedQuest
     response["result"] = "success"
     response["message"] = "모든 검사가 정상적입니다."
     return response

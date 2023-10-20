@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nba-api
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:1.5.0
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:1.5.1
           ports:
             - name: http
               containerPort: 8000
@@ -37,8 +37,8 @@ spec:
             - name: WEB_URL
               valueFrom:
                 secretKeyRef:
-                  name: web-server-url-secret
-                  key: WEB_DNS
+                  name: cors-origin
+                  key: WEB_URL
       volumes:
         - name: nba-api-ca
           secret:

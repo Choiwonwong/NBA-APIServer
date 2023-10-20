@@ -8,7 +8,7 @@ pipeline {
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential-v2'
         IMAGE_NAME = 'nba-api'
-        IMAGE_VERSION = "1.5.0"
+        IMAGE_VERSION = "1.5.1"
     }
     stages {
 
@@ -18,6 +18,14 @@ pipeline {
                     credentialsId: 'NBA-Web-API-Gitops-Pipeline-Credential',
                     url: 'https://github.com/Choiwonwong/NBA-APIServer.git'
             }
+        }
+        stage('CORS Origin Registry') {
+            steps {                
+                sh '''
+                web-server-url=$(kubectl get svc nba-web-service -n web -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                kubectl create secret generic cors-origin --from-literal=WEB_URL=$web-server-url -n api
+                '''
+            } 
         }
         stage('build') {
             steps {
