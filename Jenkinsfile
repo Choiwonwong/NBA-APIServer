@@ -22,7 +22,7 @@ pipeline {
         stage('CORS Origin Registry') {
             steps {                
                 sh '''
-                web-server-url=$(kubectl get svc nba-web-service -n web -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+                web-server-url=$(kubectl get svc nba-web-service -n web -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")
                 kubectl create secret generic cors-origin --from-literal=WEB_URL=$web-server-url -n api
                 '''
             } 
