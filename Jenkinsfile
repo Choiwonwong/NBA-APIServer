@@ -22,6 +22,7 @@ pipeline {
         stage('CORS Origin Registry') {
             steps {                
                 sh '''
+                kubectl delete secret cors-origin -n api
                 kubectl create secret generic cors-origin --from-literal=WEB_URL=$(kubectl get svc nba-web-service -n web -o jsonpath="{.status.loadBalancer.ingress[0].hostname}") -n api
                 '''
             } 
