@@ -77,6 +77,8 @@ class ProcessController:
                     "허용_대역": 허용_대역,
                 }
                 userQuestYaml["컴퓨팅_요청"]["마스터노드"]["방화벽"].append(firewall_entry)
+        else:
+            del userQuestYaml["컴퓨팅_요청"]["마스터노드"]["방화벽"]
 
         return userQuestYaml
     
