@@ -10,9 +10,16 @@ class Request(SQLModel, table=True):
     requestTitle: str
     awsAccessKey: str
     awsSecretKey: str
+    awsRegionName: str
     progress: str
-    processState: str
+    processState: str | None = None
     provisionState: str | None = None
     deployState: str | None = None
     emessage: str | None = None
     tries: int = 0
+    clusterName: str
+    dataPlaneType: str
+    dataPlaneName: str
+    namespaceName: str
+    deploymentName: str
+    serviceName: str

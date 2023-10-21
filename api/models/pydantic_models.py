@@ -20,8 +20,6 @@ class RequestsOutput(BaseModel): # 웹서버로 전달을 해주는 모델, 진�
     createdAt: datetime
     updatedAt: datetime
     requestTitle: str
-    awsAccessKey: str
-    awsSecretKey: str
     progress: str
     processState: str 
     provisionState: str | None

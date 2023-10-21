@@ -8,7 +8,7 @@ pipeline {
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential-v2'
         IMAGE_NAME = 'nba-api'
-        IMAGE_VERSION = "1.5.2"
+        IMAGE_VERSION = "1.5.3"
     }
     stages {
 
@@ -22,7 +22,7 @@ pipeline {
         stage('CORS Origin Registry') {
             steps {                
                 sh '''
-                kubectl delete secret cors-origin -n api
+                kubectl get secrets cors-origin -n api &&  kubectl delete secret cors-origin -n api
                 kubectl create secret generic cors-origin --from-literal=WEB_URL=$(kubectl get svc nba-web-service -n web -o jsonpath="{.status.loadBalancer.ingress[0].hostname}") -n api
                 '''
             } 

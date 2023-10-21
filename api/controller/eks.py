@@ -173,25 +173,4 @@ class UserEKSClientController:
             result["service_external_ip"] = service.status.load_balancer.ingress[0].hostname
         except:
             result["service_external_ip"] = "Not Found"
-        return json.dumps(result)
-
-# 이 데이터들은 프로비전 정보 제공 + User EKS 접근을 위한 데이터
-provision_data = {
-    "aws_access_key": "AKIAZBW66YUY3BR4WBUJ",
-    "aws_secret_key": "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",
-    'aws_region': 'ap-northeast-1',
-    'cluster_name': 'nba-eks',
-    'dataplane_name': 'eks-node-group',
-    'dataplane_type': 'node-group'
-}
-
-# 이건 진짜 배포된 것만 보기 위한 데이터가 필요함.
-deploy_data = {
-    'namespace': 'api',
-    'deployment_name': 'nba-api',
-    'service_name': 'nba-api-service'
-}
-
-# controller = UserEKSClientController(data=provision_data)
-# print(controller.get_provision_info())
-# print(controller.get_deploy_info(data=deploy_data))
+        return result

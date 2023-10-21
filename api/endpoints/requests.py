@@ -73,8 +73,8 @@ async def checkQuest(file: UploadFile):
         "요청명",
         "AWS인증정보.AWS계정접근키",
         "AWS인증정보.AWS계정비밀키",
-        "배포요청.이미지명",
-        "배포요청.포트번호"
+        "배포요청.애플리케이션.이미지이름",
+        "배포요청.애플리케이션.포트번호"
     ]
     
     for field_path in required_fields:
@@ -198,19 +198,34 @@ async def createRequest(
     return request
 
 
-# @router.get('/{request_id}/user/', tags=["request"])
-# def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)):
-#     request = get_request_by_id(session, request_id)
-#     if not request:
-#         raise HTTPException(status_code=404, detail="Request not found")
-#     controllerData = {
-#         "aws_access_key": request.aws_access_key,
-#         "aws_secret_key": request.aws_secret_key,
-#         "aws_region": request.aws_region,
-#         "cluster_name": request.cluster_name,
-#         "dataplane_type": request.dataplane_type,
-#         "dataplane_name": "quest-dataplane"
-#     }
-    
+@router.get('/{request_id}/details/', tags=["request"])
+def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)):
+    request = get_request_by_id(session, request_id)
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    controllerData = {
+        "aws_access_key": request.awsAccessKey,
+        "aws_secret_key": request.awsSecretKey,
+        "aws_region": request.awsRegionName,
+        "cluster_name": request.clusterName,
+        "dataplane_type": request.dataPlaneType,
+        "dataplane_name": request.dataPlaneName
+    }
 
-#     return request
+    userEKSController  = UserEKSClientController(data=controllerData)
+
+    deployRequest = {
+    'namespace': request.namespaceName,
+    'deployment_name': request.deploymentName,
+    'service_name': request.serviceName
+    }
+
+    provisionData = userEKSController.get_provision_info()
+    deployData = userEKSController.get_deploy_info(data=deployRequest)
+
+    result = {
+        "provision" : provisionData,
+        "deploy": deployData
+    }
+    
+    return result

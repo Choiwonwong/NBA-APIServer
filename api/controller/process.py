@@ -37,10 +37,12 @@ class ProcessController:
             },
             "컴퓨팅_요청": {
                 "마스터노드": {
+                    "이름": self.quest.get("컴퓨팅요청", {}).get("마스터노드", {}).get("이름", "quest-eks"),
                     "버전": self.quest.get("컴퓨팅요청", {}).get("마스터노드", {}).get("버전", "1.27"),     
                     "방화벽": [],
                 },
                 "워커노드": {
+                    "이름": self.quest.get("컴퓨팅요청", {}).get("워커노드", {}).get("이름", "quest-data-plane"),
                     "기반": self.quest.get("컴퓨팅요청", {}).get("워커노드", {}).get("기반", "가상머신") + "_기반",
                     "스펙": self.quest.get("컴퓨팅요청", {}).get("워커노드", {}).get("스펙", "t3.medium"),
                     "과금_방식": self.quest.get("컴퓨팅요청", {}).get("워커노드", {}).get("과금방식", "SPOT"),
@@ -52,9 +54,18 @@ class ProcessController:
                 }
             },
             "배포_요청": {
-                "이미지_명": self.quest.get("배포요청", {}).get("이미지명"),
-                "포트_번호": self.quest.get("배포요청", {}).get("포트번호"),
-                "네임_스페이스": self.quest.get("배포요청", {}).get("네임스페이스", "default"),
+                "네임_스페이스_이름": self.quest.get("배포요청", {}).get("네임스페이스이름"),
+                "애플리케이션":{
+                    "앱_이름": self.quest.get("배포요청", {}).get("애플리케이션", {}).get("앱이름", 'quest-app'),
+                    "이미지_이름": self.quest.get("배포요청", {}).get("애플리케이션", {}).get("이미지이름"),
+                    "포트_번호": self.quest.get("배포요청", {}).get("애플리케이션", {}).get("포트_번호"),
+                    "복제본_개수": self.quest.get("배포요청", {}).get("애플리케이션", {}).get("복제본개수", "3"),
+                },
+                "서비스": {
+                    "서비스_이름": self.quest.get("배포요청", {}).get("배포", {}).get("서비스이름", "quest-service"),
+                    "서비스_타입": self.quest.get("배포요청", {}).get("배포", {}).get("서비스타입", "로드밸런서"),                    
+                },
+                "환경_변수": [],
             }
         }
         firewall_item = self.quest.get("컴퓨팅요청", {}).get("마스터노드", {}).get("방화벽")
@@ -79,6 +90,23 @@ class ProcessController:
                 userQuestYaml["컴퓨팅_요청"]["마스터노드"]["방화벽"].append(firewall_entry)
         else:
             del userQuestYaml["컴퓨팅_요청"]["마스터노드"]["방화벽"]
+
+        env_list = self.quest.get("배포요청", {}).get("환경변수")
+        if env_list:
+            if isinstance(env_list, list):
+                for item in env_list:
+                    if isinstance(item, dict):
+                        env_entry = {
+                            "환경_변수_명": item.get("이름"),
+                        }
+                        userQuestYaml["배포_요청"]["환경_변수"].append(env_entry)
+            elif isinstance(env_list, dict):
+                env_entry = {
+                    "환경_변수_명": env_list.get("이름"),
+                }
+                userQuestYaml["배포_요청"]["환경_변수"].append(env_entry)
+        else:
+            del userQuestYaml["배포_요청"]["환경_변수"]
 
         return userQuestYaml
     
