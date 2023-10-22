@@ -12,14 +12,14 @@ import yaml
 
 router = APIRouter()
 
-####################### OK
+################################################################################################################### OK
 @router.get('/', response_model=list[RequestsOutput], tags=["request"])
 def getAllRequests(session: Session = Depends(get_session)):
     requests = get_requests(session)
     return requests
 
 
-####################### OK
+################################################################################################################### OK
 @router.get('/{request_id}', response_model=RequestsOutput, tags=["request"])
 def getOneRequest(request_id: int, session: Session = Depends(get_session)):
     request = get_request_by_id(session, request_id)
@@ -27,7 +27,7 @@ def getOneRequest(request_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Request not found")
     return request
 
-####################### OK
+################################################################################################################### OK
 @router.put('/{request_id}', response_model=RequestsOutput, tags=["request"])
 def updateRequest(request_id: int, request_data: RequestsUpdate, session: Session = Depends(get_session)):
     request = get_request_by_id(session, request_id)
@@ -36,7 +36,7 @@ def updateRequest(request_id: int, request_data: RequestsUpdate, session: Sessio
     request = update_request(session, request, request_data.dict())
     return request
 
-####################### OK
+################################################################################################################### OK
 @router.delete('/{request_id}', tags=["request"])
 def deleteRequest(request_id: int, session: Session = Depends(get_session)):
     request = get_request_by_id(session, request_id)
@@ -45,7 +45,7 @@ def deleteRequest(request_id: int, session: Session = Depends(get_session)):
     delete_request(session, request)
     return {"message": "Request deleted successfully"}
 
-####################### OK
+################################################################################################################### OK
 @router.post('/check', tags=["request"])
 async def checkQuest(file: UploadFile): 
     response = {
@@ -97,6 +97,40 @@ async def checkQuest(file: UploadFile):
     response["result"] = "success"
     response["message"] = "모든 검사가 정상적입니다."
     return response
+
+################################################################################################################### OK
+@router.get('/{request_id}/details/', tags=["request"])
+def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)):
+    request = get_request_by_id(session, request_id)
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    controllerData = {
+        "aws_access_key": request.awsAccessKey,
+        "aws_secret_key": request.awsSecretKey,
+        "aws_region": request.awsRegionName,
+        "cluster_name": request.clusterName,
+        "dataplane_name": request.dataPlaneName,
+        "dataplane_type": request.dataPlaneType
+    }
+
+    userEKSController  = UserEKSClientController(data=controllerData)
+
+    deployRequest = {
+    'namespace': request.namespaceName,
+    'deployment_name': request.deploymentName,
+    'service_name': request.serviceName
+    }
+
+    provisionData = userEKSController.get_provision_info()
+    deployData = userEKSController.get_deploy_info(data=deployRequest)
+
+    result = {
+        "provision" : provisionData,
+        "deploy": deployData
+    }
+    
+    return result
+
 
 
 @router.get('/{request_id}/{progress}/logs', tags=["request"])
@@ -195,34 +229,3 @@ async def createRequest(
     return request
 
 
-@router.get('/{request_id}/details/', tags=["request"])
-def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)):
-    request = get_request_by_id(session, request_id)
-    if not request:
-        raise HTTPException(status_code=404, detail="Request not found")
-    controllerData = {
-        "aws_access_key": request.awsAccessKey,
-        "aws_secret_key": request.awsSecretKey,
-        "aws_region": request.awsRegionName,
-        "cluster_name": request.clusterName,
-        "dataplane_name": request.dataPlaneName,
-        "dataplane_type": request.dataPlaneType
-    }
-
-    userEKSController  = UserEKSClientController(data=controllerData)
-
-    deployRequest = {
-    'namespace': request.namespaceName,
-    'deployment_name': request.deploymentName,
-    'service_name': request.serviceName
-    }
-
-    provisionData = userEKSController.get_provision_info()
-    deployData = userEKSController.get_deploy_info(data=deployRequest)
-
-    result = {
-        "provision" : provisionData,
-        "deploy": deployData
-    }
-    
-    return result

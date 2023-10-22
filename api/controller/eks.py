@@ -74,6 +74,14 @@ class UserEKSClientController:
                 try:
                     as_infos = as_client.describe_auto_scaling_groups(AutoScalingGroupNames=[ag_id])['AutoScalingGroups'][0]
                     result["ng_current_count"] = len(as_infos['Instances'])
+
+                    result["ng_status"] = []
+                    for instance in as_infos['Instances']:
+                        instance_status = {
+                        "node_name": instance['InstanceId'],
+                        "node_status": instance['LifecycleState']
+                        }
+                        result["ng_status"].append(instance_status)
                 except KeyError:
                     result["dp_status"] = not_presented
                     result["ng_current_count"] = not_presented
@@ -141,14 +149,14 @@ class UserEKSClientController:
         try:
             pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'app={deployment_name}')
             if pods is not None and len(pods.items) > 0:
-                result["pod_status"] = {}
+                result["pod_status"] = []
                 for idx in range(len(pods.items)):
                     pod = pods.items[idx]
                     pod_info = {
                         "pod_name": pod.metadata.name,
                         "pod_status": pod.status.phase
                     }    
-                    result["pod_status"][str(idx)] = pod_info
+                    result["pod_status"].append(pod_info) 
             else:
                 result["pod_status"] = not_presented            
         except:
