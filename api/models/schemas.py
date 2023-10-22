@@ -8,6 +8,7 @@ class Request(SQLModel, table=True):
     createdAt: datetime = Field(default=func.now() + timedelta(hours=9))
     updatedAt: datetime = Field(default=func.now() + timedelta(hours=9))
     requestTitle: str
+    requestType: str
     awsAccessKey: str
     awsSecretKey: str
     awsRegionName: str

@@ -2,14 +2,8 @@ from .schemas import Request
 from sqlalchemy.orm import Session
 from datetime import datetime as date
 
-# To requests Table
-# Create a new request
 def create_request(session: Session, request_data: dict) -> Request:
     request_dict = request_data
-    # access_key =  bcrypt.hashpw(request_dict["awsAccessKey"].encode("utf-8"), bcrypt.gensalt())
-    # secret_key = bcrypt.hashpw(request_dict["awsSecretKey"].encode("utf-8"), bcrypt.gensalt())
-    # request_dict["awsAccessKey"] = access_key
-    # request_dict["awsSecretKey"] = secret_key
     new_request = Request(
         **request_dict,
         progress="처리 단계",

@@ -1,6 +1,9 @@
 import boto3, eks_token
 import os, tempfile, base64
-import kubernetes, json
+import kubernetes
+
+presented = "Found"
+not_presented = "Not Found"
 
 def _write_cafile(data):
     cafile = tempfile.NamedTemporaryFile(delete=False)
@@ -57,14 +60,12 @@ class UserEKSClientController:
             result["eks_version"] = eks_infos["version"]
             result["eks_status"] = eks_infos["status"]
             result["eks_endpoint"] = eks_infos["endpoint"]
-            result["endpoint"] = eks_infos["endpoint"]
         except KeyError:
-            result["eks_version"] = "Not Found"
-            result["eks_status"] = "Not Found"
-            result["eks_endpoint"] = "Not Found"
-            result["endpoint"] = "Not Found"
+            result["eks_version"] = not_presented
+            result["eks_status"] = not_presented
+            result["eks_endpoint"] = not_presented
 
-        if self.dataplane_type == "node-group":
+        if self.dataplane_type == "nodegroup":
             try:
                 ng_infos = eks_client.describe_nodegroup(clusterName=self.cluster_name, nodegroupName=self.dataplane_name)["nodegroup"]
                 result["dp_status"] = ng_infos["status"]
@@ -74,19 +75,19 @@ class UserEKSClientController:
                     as_infos = as_client.describe_auto_scaling_groups(AutoScalingGroupNames=[ag_id])['AutoScalingGroups'][0]
                     result["ng_current_count"] = len(as_infos['Instances'])
                 except KeyError:
-                    result["dp_status"] = "Not Found"
-                    result["ng_current_count"] = "Not Found"
+                    result["dp_status"] = not_presented
+                    result["ng_current_count"] = not_presented
             except KeyError:
-                result["dp_status"] = "Not Found"
-                result["ng_current_count"] = "Not Found"
+                result["dp_status"] = not_presented
+                result["ng_current_count"] = not_presented
         else:
             try:
                 fg_infos = eks_client.describe_fargate_profile(clusterName=self.cluster_name, fargateProfileName=self.dataplane_name)["fargateProfile"]
                 result["dp_status"] = fg_infos["status"]
                 result["ng_current_count"] = None
             except KeyError:
-                result["dp_status"] = "Not Found"
-                result["ng_current_count"] = "Not Found"
+                result["dp_status"] = not_presented
+                result["ng_current_count"] = not_presented
         return result
     
     def _get_eks_ca(self):
@@ -128,14 +129,14 @@ class UserEKSClientController:
 
         try:
             kube_client.read_namespace(namespace_name)
-            result["namespace_status"] = "Found"
+            result["namespace_status"] = presented
         except kubernetes.client.rest.ApiException as e:
-            result["namespace_status"] = "Not Found"
+            result["namespace_status"] = not_presented
         try:
             deployment = apps_v1_client.read_namespaced_deployment(deployment_name, namespace_name)
             result["deployment_status"] = deployment.status.conditions[-1].type
         except kubernetes.client.rest.ApiException as e:
-            result["deployment_status"] = "Not Found"
+            result["deployment_status"] = not_presented
 
         try:
             pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'app={deployment_name}')
@@ -149,28 +150,28 @@ class UserEKSClientController:
                     }    
                     result["pod_status"][str(idx)] = pod_info
             else:
-                result["pod_status"] = "Not Found"            
+                result["pod_status"] = not_presented            
         except:
-            result["pods_status"] = "Not Found"
+            result["pods_status"] = not_presented
 
         try:
             service = kube_client.read_namespaced_service(service_name, namespace_name)
         except:
-            result["service_type"] = "Not Found"
-            result["deployment_port"] = "Not Found"
-            result["service_external_ip"] = "Not Found"
+            result["service_type"] = not_presented
+            result["deployment_port"] = not_presented
+            result["service_external_ip"] = not_presented
 
         try:
             result["service_type"] = service.spec.type
         except:
-            result["service_type"] = "Not Found"
+            result["service_type"] = not_presented
 
         try:
             result["deployment_port"] = service.spec.ports[0].port
         except:
-            result["deployment_port"] = "Not Found"
+            result["deployment_port"] = not_presented
         try:
             result["service_external_ip"] = service.status.load_balancer.ingress[0].hostname
         except:
-            result["service_external_ip"] = "Not Found"
+            result["service_external_ip"] = not_presented
         return result
