@@ -46,6 +46,32 @@ class UserEKSClientController:
         os.remove(self.aws_config_path)
         return token
     
+    def _get_eks_ca(self):
+        eks_client = self.session.client('eks')
+        cluster_data = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
+        return _write_cafile(cluster_data["certificateAuthority"]["data"])
+    
+    def _k8s_api_client_config(self, endpoint: str, token: str, cafile: str):
+        kconfig = kubernetes.config.kube_config.Configuration(
+            host=endpoint,
+            api_key={"authorization": f"Bearer {token}"}
+        )
+
+        kconfig.ssl_ca_cert = cafile.name
+        kconfig.verify_ssl = True 
+        kconfig.debug = False
+        self.kclient = kubernetes.client.ApiClient(configuration=kconfig)
+
+        return self.kclient
+    
+    def _get_user_eks_client(self):
+        token = self._get_eks_token()['status']['token']
+        cafile = self._get_eks_ca()
+        client = self.session.client("eks")
+        endpoint = client.describe_cluster(name=self.cluster_name)["cluster"]["endpoint"]
+        self.eks_client = self._k8s_api_client_config(endpoint, token, cafile)
+        return self.eks_client
+    
     def get_provision_info(self):
         result = {}
         eks_client = self.session.client('eks')
@@ -97,32 +123,6 @@ class UserEKSClientController:
                 result["dp_status"] = not_presented
                 result["ng_current_count"] = not_presented
         return result
-    
-    def _get_eks_ca(self):
-        eks_client = self.session.client('eks')
-        cluster_data = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
-        return _write_cafile(cluster_data["certificateAuthority"]["data"])
-    
-    def _k8s_api_client_config(self, endpoint: str, token: str, cafile: str):
-        kconfig = kubernetes.config.kube_config.Configuration(
-            host=endpoint,
-            api_key={"authorization": f"Bearer {token}"}
-        )
-
-        kconfig.ssl_ca_cert = cafile.name
-        kconfig.verify_ssl = True 
-        kconfig.debug = False
-        self.kclient = kubernetes.client.ApiClient(configuration=kconfig)
-
-        return self.kclient
-    
-    def _get_user_eks_client(self):
-        token = self._get_eks_token()['status']['token']
-        cafile = self._get_eks_ca()
-        client = self.session.client("eks")
-        endpoint = client.describe_cluster(name=self.cluster_name)["cluster"]["endpoint"]
-        self.eks_client = self._k8s_api_client_config(endpoint, token, cafile)
-        return self.eks_client
     
     def get_deploy_info(self, data):
         apps_v1_client = kubernetes.client.AppsV1Api(self.eks_client)

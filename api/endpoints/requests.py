@@ -147,17 +147,17 @@ async def getRequestLogs(request_id: int,  session: Session = Depends(get_sessio
     response = StreamingResponse(ctnController.getLogsStreamer(progress=progress), media_type="text/event-stream")
     return response
 
-@router.get('/{request_id}/logs2', tags=["request"])
-async def getRequestLogs(request_id: int, session: Session = Depends(get_session)):
-    def event_generator():
-        i = 1
-        while True:
-            event_data = f"이벤트 데이터:"  
-            yield f"data: {event_data}{i}\n\n"
-            i+=1
-            time.sleep(0.3) 
-    response = StreamingResponse(event_generator(), media_type="text/event-stream")
-    return response
+# @router.get('/{request_id}/logs2', tags=["request"])
+# async def getRequestLogs(request_id: int, session: Session = Depends(get_session)):
+#     def event_generator():
+#         i = 1
+#         while True:
+#             event_data = f"이벤트 데이터:"  
+#             yield f"data: {event_data}{i}\n\n"
+#             i+=1
+#             time.sleep(0.3) 
+#     response = StreamingResponse(event_generator(), media_type="text/event-stream")
+#     return response
 
 @router.post('/', tags=["request"])
 async def createRequest(
