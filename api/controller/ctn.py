@@ -44,37 +44,37 @@ class CTNController:
             print(f"Failed to get logs: {e.reason}")
             return False
         
-    # def getLogsStreamer(self, progress):
-    #     v1 = client.CoreV1Api(self.k8sClient)
-    #     if progress == "provision":
-    #         pod_name = "privision"
-    #     elif progress == "deploy":
-    #         pods = v1.list_namespaced_pod(namespace=self.namespace, label_selector=f"job-name=deploy")
-    #         running_pods = [pod for pod in pods.items if pod.status.phase == "Running"]
-    #         try:
-    #              if running_pods:
-    #                 pod_name = running_pods[0]
-    #         except ApiException as e:
-    #             raise Exception("No running deploy pods")
-    #     try: 
-    #         response = v1.read_namespaced_pod_log(name=pod_name, namespace=self.namespace, follow=True, _preload_content=False)
-    #         for log in response:
-    #             yield f"data: {log}\n\n"
-    #     except ApiException as e:
-    #         print(f"Failed to get logs: {e.reason}")
-
     def getLogsStreamer(self, progress):
-        if progress == "provision":
-            pod_name = "provision"
-        elif progress == "deploy":
-            pod_name = "job.batch/deploy"
-        else:
-            raise Exception("Invalid progress")
         v1 = client.CoreV1Api(self.k8sClient)
-        try:
+        if progress == "provision":
+            pod_name = "privision"
+        elif progress == "deploy":
+            pods = v1.list_namespaced_pod(namespace=self.namespace, label_selector=f"job-name=deploy")
+            running_pods = [pod for pod in pods.items if pod.status.phase == "Running"]
+            try:
+                 if running_pods:
+                    pod_name = running_pods[0]
+            except ApiException as e:
+                raise Exception("No running deploy pods")
+        try: 
             response = v1.read_namespaced_pod_log(name=pod_name, namespace=self.namespace, follow=True, _preload_content=False)
             for log in response:
                 yield f"data: {log}\n\n"
-        except asyncio.CancelledError:
-            print("caught canceled error")
+        except ApiException as e:
+            print(f"Failed to get logs: {e.reason}")
+
+    # def getLogsStreamer(self, progress):
+    #     if progress == "provision":
+    #         pod_name = "provision"
+    #     elif progress == "deploy":
+    #         pod_name = "job.batch/deploy"
+    #     else:
+    #         raise Exception("Invalid progress")
+    #     v1 = client.CoreV1Api(self.k8sClient)
+    #     try:
+    #         response = v1.read_namespaced_pod_log(name=pod_name, namespace=self.namespace, follow=True, _preload_content=False)
+    #         for log in response:
+    #             yield f"data: {log}\n\n"
+    #     except asyncio.CancelledError:
+    #         print("caught canceled error")
 
