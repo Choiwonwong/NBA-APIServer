@@ -174,3 +174,5 @@ test.py
 manifest/service.yaml
 
 userEKSTest.py
+
+env*

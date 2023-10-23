@@ -111,7 +111,7 @@ class UserEKSClientController:
 
         kconfig.ssl_ca_cert = cafile.name
         kconfig.verify_ssl = True 
-        kconfig.debug = True
+        kconfig.debug = False
         self.kclient = kubernetes.client.ApiClient(configuration=kconfig)
 
         return self.kclient

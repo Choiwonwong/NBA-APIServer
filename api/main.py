@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints import requests, webhook
-
 from api.models.connection import K8s_client
 from kubernetes import client
 import os

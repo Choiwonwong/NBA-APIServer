@@ -8,7 +8,7 @@ from api.controller.process import ProcessController, preProcess, get_nested_val
 from api.controller.cfg import ConfigController
 from api.controller.ctn import CTNController
 from api.controller.eks import UserEKSClientController
-import yaml
+import yaml, time
 
 router = APIRouter()
 
@@ -131,16 +131,31 @@ def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)
     
     return result
 
+# @router.get('/{request_id}/logs', tags=["request"])
+# async def getRequestLogs(request_id: int,  session: Session = Depends(get_session)):
+#     try: 
+#         request = get_request_by_id(session, request_id)
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail="없는 값입니다.")
+#     serviceNSName = f"quest-{request.id}"
+#     ctnController = CTNController(namespace=serviceNSName)
+#     response = StreamingResponse(ctnController.getLogsStreamer("provision"), media_type="text/event-stream")
+#     return response
 
-
-@router.get('/{request_id}/{progress}/logs', tags=["request"])
-async def getRequestLogs2(request_id: int, progress: str, session: Session = Depends(get_session)):
-    if progress not in ["provision", "deploy"]:
-        raise HTTPException(status_code=400, detail="Invalid progress")
-    request = get_request_by_id(session, request_id)
-    serviceNSName = f"quest-{request.id}"
-    ctnController = CTNController(namespace=serviceNSName)
-    response = StreamingResponse(ctnController.getLogsStreamer("provision"), media_type="text/event-stream")
+@router.get('/{request_id}/logs', tags=["request"])
+async def getRequestLogs(request_id: int, session: Session = Depends(get_session)):
+    try: 
+        request = get_request_by_id(session, request_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="없는 값입니다.")
+    def event_generator():
+        i = 1
+        while True:
+            event_data = f"이벤트 데이터:"  
+            yield f"data: {event_data}{i}\n\n"
+            i+=1
+            time.sleep(0.3) 
+    response = StreamingResponse(event_generator(), media_type="text/event-stream")
     return response
 
 @router.post('/', tags=["request"])
