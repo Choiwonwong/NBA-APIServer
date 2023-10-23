@@ -131,23 +131,24 @@ def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)
     
     return result
 
-# @router.get('/{request_id}/logs', tags=["request"])
-# async def getRequestLogs(request_id: int,  session: Session = Depends(get_session)):
-#     try: 
-#         request = get_request_by_id(session, request_id)
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail="없는 값입니다.")
-#     serviceNSName = f"quest-{request.id}"
-#     ctnController = CTNController(namespace=serviceNSName)
-#     response = StreamingResponse(ctnController.getLogsStreamer("provision"), media_type="text/event-stream")
-#     return response
-
 @router.get('/{request_id}/logs', tags=["request"])
-async def getRequestLogs(request_id: int, session: Session = Depends(get_session)):
+async def getRequestLogs(request_id: int,  session: Session = Depends(get_session)):
     try: 
         request = get_request_by_id(session, request_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail="없는 값입니다.")
+    serviceNSName = f"quest-{request.id}"
+    progress = request.progress
+    if progress == "프로비저닝":
+        progress = "provision"
+    elif progress == "배포":
+        progress = "deploy"
+    ctnController = CTNController(namespace=serviceNSName)
+    response = StreamingResponse(ctnController.getLogsStreamer(progress=progress), media_type="text/event-stream")
+    return response
+
+@router.get('/{request_id}/logs2', tags=["request"])
+async def getRequestLogs(request_id: int, session: Session = Depends(get_session)):
     def event_generator():
         i = 1
         while True:
