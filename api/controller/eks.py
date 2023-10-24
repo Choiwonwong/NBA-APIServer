@@ -26,7 +26,6 @@ class UserEKSClientController:
         self.session = boto3.Session( aws_access_key_id=data['aws_access_key'], 
                                      aws_secret_access_key=data['aws_secret_key'], 
                                      region_name=data['aws_region'])
-        self.k8sclient = self._get_user_eks_client()
     
     def _create_aws_config(self):
         aws_directory = os.path.expanduser("~/.aws")
@@ -47,8 +46,14 @@ class UserEKSClientController:
     
     def _get_eks_ca(self):
         eks_client = self.session.client('eks')
-        cluster_data = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
-        return _write_cafile(cluster_data["certificateAuthority"]["data"])
+        try:
+            cluster_data = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
+            return _write_cafile(cluster_data["certificateAuthority"]["data"])
+        except Exception as e:
+            print(f"An error occurred while getting EKS CA: {str(e)}")
+            return False
+
+        
     
     def _k8s_api_client_config(self, endpoint: str, token: str, cafile: str):
         kconfig = kubernetes.config.kube_config.Configuration(
@@ -59,17 +64,22 @@ class UserEKSClientController:
         kconfig.ssl_ca_cert = cafile.name
         kconfig.verify_ssl = True 
         kconfig.debug = False
-        self.kclient = kubernetes.client.ApiClient(configuration=kconfig)
+        kclient = kubernetes.client.ApiClient(configuration=kconfig)
 
-        return self.kclient
+        return kclient
     
     def _get_user_eks_client(self):
         token = self._get_eks_token()['status']['token']
         cafile = self._get_eks_ca()
         client = self.session.client("eks")
-        endpoint = client.describe_cluster(name=self.cluster_name)["cluster"]["endpoint"]
-        self.eks_client = self._k8s_api_client_config(endpoint, token, cafile)
-        return self.eks_client
+        if cafile is False:
+            return False
+        try: 
+            endpoint = client.describe_cluster(name=self.cluster_name)["cluster"]["endpoint"]
+        except Exception as e:
+            return False 
+        eks_client = self._k8s_api_client_config(endpoint, token, cafile)
+        return eks_client
     
     def get_provision_info(self):
         result = {}
@@ -79,13 +89,13 @@ class UserEKSClientController:
         result["eks_name"] = self.cluster_name
         result["dataplane_name"] = self.dataplane_name
         result["dataplane_type"] = "가상머신"
-
+    
         try:
             eks_infos = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
             result["eks_version"] = eks_infos["version"]
             result["eks_status"] = eks_infos["status"]
             result["eks_endpoint"] = eks_infos["endpoint"]
-        except KeyError:
+        except Exception as e:
             result["eks_version"] = not_presented
             result["eks_status"] = not_presented
             result["eks_endpoint"] = not_presented
@@ -103,24 +113,30 @@ class UserEKSClientController:
                     "node_status": instance['LifecycleState']
                     }
                     result["ng_status"].append(instance_status)
-            except KeyError:
+            except Exception as e:
                 result["dp_status"] = not_presented
                 result["ng_current_count"] = not_presented
-        except KeyError:
+        except Exception as e:
             result["dp_status"] = not_presented
             result["ng_current_count"] = not_presented
         return result
     
     def get_deploy_info(self, data):
-        apps_v1_client = kubernetes.client.AppsV1Api(self.eks_client)
-        kube_client = kubernetes.client.CoreV1Api(self.eks_client)
+        eks_client= self._get_user_eks_client()
+        if eks_client is False:
+            return {"eks_present": False}
+        
+        apps_v1_client = kubernetes.client.AppsV1Api(eks_client)
+        kube_client = kubernetes.client.CoreV1Api(eks_client)
+
         namespace_name = data['namespace']
         deployment_name = data['deployment_name']
         service_name = data['service_name']
-        result = {}
+        result = {"eks_present": True}
         result["namespace_name"] = namespace_name
         result["deployment_name"] = deployment_name
         result["service_name"] = service_name
+      
 
         try:
             kube_client.read_namespace(namespace_name)

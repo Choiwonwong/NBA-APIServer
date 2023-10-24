@@ -8,7 +8,7 @@ from api.controller.process import ProcessController, preProcess, get_nested_val
 from api.controller.cfg import ConfigController
 from api.controller.ctn import CTNController
 from api.controller.eks import UserEKSClientController
-import yaml, time
+import yaml
 
 router = APIRouter()
 
