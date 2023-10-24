@@ -4,7 +4,7 @@ from api.endpoints import requests, webhook
 from api.models.connection import K8s_client
 from kubernetes import client
 
-app = FastAPI(docs_url='/api/docs')
+app = FastAPI(docs_url='/api/docs', openapi_url='/api/openapi.json')
 
 origins = [
     "https://www.quest-nba.com",
