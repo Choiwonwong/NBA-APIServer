@@ -3,14 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints import requests, webhook
 from api.models.connection import K8s_client
 from kubernetes import client
-import os
 
-app = FastAPI()
+app = FastAPI(docs_url='/api/docs')
 
 origins = [
-    # "http://localhost",
-    # "http://localhost:3000",
-    "http://www.quest-nba.com/",
     "https://www.quest-nba.com/",
 ]
 
@@ -25,7 +21,7 @@ app.add_middleware(
 app.include_router(requests.router , prefix='/api/requests')
 app.include_router(webhook.router , prefix='/api/webhook', deprecated=True)
 
-@app.get('/')
+@app.get('/api')
 async def get_namespaces():
     CoreV1Api_client = client.CoreV1Api(K8s_client)
     try:

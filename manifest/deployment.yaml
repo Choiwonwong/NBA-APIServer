@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: quest-api-ctn
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.0.0
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.0.1
           ports:
             - name: http
               containerPort: 8000
@@ -26,12 +26,6 @@ spec:
                 name: quest-eks-url
             - secretRef:
                 name: quest-api-sa
-          # env:
-          #   - name: WEB_URL
-          #     valueFrom:
-          #       secretKeyRef:
-          #         name: cors-origin
-          #         key: WEB_URL
           volumeMounts:
             - name: quest-api-ca
               mountPath: "/root/.kube/"
