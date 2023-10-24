@@ -22,7 +22,6 @@ class UserEKSClientController:
         self.aws_secret_key = data['aws_secret_key']
         self.aws_region = data['aws_region']
         self.cluster_name = data['cluster_name']
-        self.dataplane_type = data['dataplane_type']
         self.dataplane_name = data['dataplane_name']
         self.session = boto3.Session( aws_access_key_id=data['aws_access_key'], 
                                      aws_secret_access_key=data['aws_secret_key'], 
@@ -79,7 +78,7 @@ class UserEKSClientController:
 
         result["eks_name"] = self.cluster_name
         result["dataplane_name"] = self.dataplane_name
-        result["dataplane_type"] = self.dataplane_type
+        result["dataplane_type"] = "가상머신"
 
         try:
             eks_infos = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
@@ -90,38 +89,26 @@ class UserEKSClientController:
             result["eks_version"] = not_presented
             result["eks_status"] = not_presented
             result["eks_endpoint"] = not_presented
-
-        if self.dataplane_type == "nodegroup":
+        try:
+            ng_infos = eks_client.describe_nodegroup(clusterName=self.cluster_name, nodegroupName=self.dataplane_name)["nodegroup"]
+            result["dp_status"] = ng_infos["status"]
+            ag_id = ng_infos['resources']['autoScalingGroups'][0]['name']
             try:
-                ng_infos = eks_client.describe_nodegroup(clusterName=self.cluster_name, nodegroupName=self.dataplane_name)["nodegroup"]
-                result["dp_status"] = ng_infos["status"]
-                ag_id = ng_infos['resources']['autoScalingGroups'][0]['name']
-
-                try:
-                    as_infos = as_client.describe_auto_scaling_groups(AutoScalingGroupNames=[ag_id])['AutoScalingGroups'][0]
-                    result["ng_current_count"] = len(as_infos['Instances'])
-
-                    result["ng_status"] = []
-                    for instance in as_infos['Instances']:
-                        instance_status = {
-                        "node_name": instance['InstanceId'],
-                        "node_status": instance['LifecycleState']
-                        }
-                        result["ng_status"].append(instance_status)
-                except KeyError:
-                    result["dp_status"] = not_presented
-                    result["ng_current_count"] = not_presented
+                as_infos = as_client.describe_auto_scaling_groups(AutoScalingGroupNames=[ag_id])['AutoScalingGroups'][0]
+                result["ng_current_count"] = len(as_infos['Instances'])
+                result["ng_status"] = []
+                for instance in as_infos['Instances']:
+                    instance_status = {
+                    "node_name": instance['InstanceId'],
+                    "node_status": instance['LifecycleState']
+                    }
+                    result["ng_status"].append(instance_status)
             except KeyError:
                 result["dp_status"] = not_presented
                 result["ng_current_count"] = not_presented
-        else:
-            try:
-                fg_infos = eks_client.describe_fargate_profile(clusterName=self.cluster_name, fargateProfileName=self.dataplane_name)["fargateProfile"]
-                result["dp_status"] = fg_infos["status"]
-                result["ng_current_count"] = None
-            except KeyError:
-                result["dp_status"] = not_presented
-                result["ng_current_count"] = not_presented
+        except KeyError:
+            result["dp_status"] = not_presented
+            result["ng_current_count"] = not_presented
         return result
     
     def get_deploy_info(self, data):
@@ -147,7 +134,7 @@ class UserEKSClientController:
             result["deployment_status"] = not_presented
 
         try:
-            pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'app={deployment_name}')
+            pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'app=quest')
             if pods is not None and len(pods.items) > 0:
                 result["pod_status"] = []
                 for idx in range(len(pods.items)):

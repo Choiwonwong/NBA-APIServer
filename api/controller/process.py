@@ -1,6 +1,8 @@
 import boto3
 from botocore.exceptions import NoCredentialsError
 
+fixedQuest = "[변경 불가]-"
+
 def preProcess(obj):
     if isinstance(obj, dict):
         return {str(key).replace("_", ""): preProcess(value) for key, value in obj.items()}
@@ -35,14 +37,21 @@ class ProcessController:
                 "인터넷주소_변환_게이트웨이(NAT_GW)": self.quest.get("네트워크요청", {}).get("인터넷주소변환게이트웨이", "1") + "개",
             },
             "컴퓨팅_요청": {
-                "컨트롤_플레인": {
-                    "이름": self.quest.get("컴퓨팅요청", {}).get("마스터노드", {}).get("이름", "quest-eks"),
-                    "버전": self.quest.get("컴퓨팅요청", {}).get("마스터노드", {}).get("버전", "1.27"),     
+                "컨트롤_플레인(EKS)": {
+                    "이름": self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks"),
+                    "버전": self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("버전", "1.27"),     
                     "방화벽": [],
                 },
                 "데이터_플레인": {
                     "이름": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane"),
-                    "기반": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("기반", "가상머신") + "_기반"
+                    "기반": fixedQuest+ "가상머신",
+                    "스펙": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "t3.medium"),
+                    "과금방식": fixedQuest + "SPOT",
+                    "가상머신_개수": {
+                        "최대": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최대", "4") + "개",
+                        "최소": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최소", "2") + "개",
+                        "요구": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("요구", "3") + "개",
+                    }
                 }
             },
             "배포_요청": {
@@ -54,23 +63,13 @@ class ProcessController:
                     "복제본_개수": self.quest.get("배포요청", {}).get("애플리케이션", {}).get("복제본개수", "3"),
                 },
                 "서비스": {
-                    "서비스_이름": self.quest.get("배포요청", {}).get("배포", {}).get("서비스이름", "quest-service"),
-                    "서비스_타입": self.quest.get("배포요청", {}).get("배포", {}).get("서비스타입", "로드밸런서"),                    
+                    "서비스_이름": self.quest.get("배포요청", {}).get("서비스", {}).get("서비스이름", "quest-service"),
+                    "서비스_타입": fixedQuest+ "로드밸런서",
                 },
                 "환경_변수": [],
             }
         }
-        # 데이터 플레인 처리 - 파게이트일 땐 안넣으면 될 듯
-        if "컨테이너" not in self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("기반", "가상머신") :
-            userQuestYaml["컴퓨팅_요청"]["데이터_플레인"]["스펙"] = self.quest.get("컴퓨팅요청", {}).get("워커노드", {}).get("스펙", "t3.medium")
-            userQuestYaml["컴퓨팅_요청"]["데이터_플레인"]["과금방식"] =  self.quest.get("컴퓨팅요청", {}).get("워커노드", {}).get("과금방식", "SPOT")
 
-            as_data = {
-                "최대": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("워커노드개수", {}).get("최대", "4") + "개",
-                "최소": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("워커노드개수", {}).get("최소", "2") + "개",
-                "요구": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("워커노드개수", {}).get("요구", "3") + "개",    
-            }
-            userQuestYaml["컴퓨팅_요청"]["데이터_플레인"]["워커노드_개수"] = as_data
         # 방화벽 처리
         firewall_item = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("방화벽")
         if firewall_item:
@@ -83,7 +82,7 @@ class ProcessController:
                             "허용_포트": 허용_포트,
                             "허용_대역": 허용_대역,
                         }
-                        userQuestYaml["컴퓨팅_요청"]["컨트롤_플레인"]["방화벽"].append(firewall_entry)
+                        userQuestYaml["컴퓨팅_요청"]["컨트롤_플레인(EKS)"]["방화벽"].append(firewall_entry)
             elif isinstance(firewall_item, dict):
                 허용_포트 = firewall_item.get("허용포트", 8000)
                 허용_대역 = firewall_item.get("허용대역", "0.0.0.0/0")
@@ -91,9 +90,9 @@ class ProcessController:
                     "허용_포트": 허용_포트,
                     "허용_대역": 허용_대역,
                 }
-                userQuestYaml["컴퓨팅_요청"]["컨트롤_플레인"]["방화벽"].append(firewall_entry)
+                userQuestYaml["컴퓨팅_요청"]["컨트롤_플레인(EKS)"]["방화벽"].append(firewall_entry)
         else:
-            del userQuestYaml["컴퓨팅_요청"]["컨트롤_플레인"]["방화벽"]
+            del userQuestYaml["컴퓨팅_요청"]["컨트롤_플레인(EKS)"]["방화벽"]
         # 배포 환경변수 처리
         env_list = self.quest.get("배포요청", {}).get("환경변수")
         if env_list:
@@ -173,10 +172,6 @@ class ProcessController:
         result['namespaceName'] = self.quest.get("배포요청", {}).get("네임스페이스이름", "default")
         result['deploymentName'] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("앱이름", "quest-app")
         result['serviceName'] = self.quest.get("배포요청", {}).get("서비스", {}).get("서비스이름", "quest-service")
-        if "컨테이너" in self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("기반", "가상머신") :
-            result['dataPlaneType'] = "fargate"
-        else:
-            result['dataPlaneType'] = "nodegroup"        
         
         if "서울" in self.quest.get("배포_지역_명", "도쿄"):
             result['awsRegionName'] = "ap-northeast-2"

@@ -80,9 +80,25 @@ async def checkQuest(file: UploadFile):
         if not get_nested_value(quest_data, field_path):
             response["message"] = f"'{field_path.replace('.', ' > ')}'가 없습니다."
             raise HTTPException(status_code=400, detail=response)
+        
     if quest_data.get("AWS인증정보").get("AWS지역명", None) not in ["서울", "도쿄"]:
         response["message"] = f"현재는 서울과 도쿄 지역만 지원합니다. 다시 요청해주세요"
         raise HTTPException(status_code=400, detail=response)
+
+    spec_value = quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", None)
+    if spec_value and not spec_value.startswith("t3."):
+        response["message"] = f"가상 머신은 현재 t3 계열만 지원합니다. 다시 요청해주세요"
+        raise HTTPException(status_code=400, detail=response)
+    
+    env_list = quest_data.get("배포요청", {}).get("환경변수", None)
+    if env_list:
+        seen_names = set()  # 중복을 확인하기 위한 이름 집합
+        for env_var in env_list:
+            name = env_var.get("이름", "")
+            if name in seen_names:
+                response["message"] = f"환경 변수 이름 '{name}'이 중복되었습니다. 이름은 고유해야 합니다."
+                raise HTTPException(status_code=400, detail=response)
+            seen_names.add(name)
 
     processController = ProcessController(quest=quest_data)
     
@@ -109,8 +125,7 @@ def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)
         "aws_secret_key": request.awsSecretKey,
         "aws_region": request.awsRegionName,
         "cluster_name": request.clusterName,
-        "dataplane_name": request.dataPlaneName,
-        "dataplane_type": request.dataPlaneType
+        "dataplane_name": request.dataPlaneName
     }
 
     userEKSController  = UserEKSClientController(data=controllerData)
@@ -128,8 +143,10 @@ def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)
         "provision" : provisionData,
         "deploy": deployData
     }
-    
     return result
+
+
+################################################################################################################### OK
 
 @router.get('/{request_id}/logs', tags=["request"])
 async def getRequestLogs(request_id: int,  session: Session = Depends(get_session)):
@@ -146,18 +163,6 @@ async def getRequestLogs(request_id: int,  session: Session = Depends(get_sessio
     ctnController = CTNController(namespace=serviceNSName)
     response = StreamingResponse(ctnController.getLogsStreamer(progress=progress), media_type="text/event-stream")
     return response
-
-# @router.get('/{request_id}/logs2', tags=["request"])
-# async def getRequestLogs(request_id: int, session: Session = Depends(get_session)):
-#     def event_generator():
-#         i = 1
-#         while True:
-#             event_data = f"이벤트 데이터:"  
-#             yield f"data: {event_data}{i}\n\n"
-#             i+=1
-#             time.sleep(0.3) 
-#     response = StreamingResponse(event_generator(), media_type="text/event-stream")
-#     return response
 
 @router.post('/', tags=["request"])
 async def createRequest(

@@ -19,7 +19,6 @@ class Request(SQLModel, table=True):
     emessage: str | None = None
     tries: int = 0
     clusterName: str
-    dataPlaneType: str
     dataPlaneName: str
     namespaceName: str
     deploymentName: str
