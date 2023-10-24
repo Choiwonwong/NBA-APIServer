@@ -7,7 +7,8 @@ from kubernetes import client
 app = FastAPI(docs_url='/api/docs')
 
 origins = [
-    "https://quest-nba.com/",
+    "https://www.quest-nba.com",
+    "https://www.quest-nba.com/",
 ]
 
 app.add_middleware(
