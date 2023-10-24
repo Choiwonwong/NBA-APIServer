@@ -7,12 +7,11 @@ import os
 
 app = FastAPI()
 
-webOrigins= os.environ.get('WEB_URL')
 origins = [
     # "http://localhost",
     # "http://localhost:3000",
-    webOrigins,
-    "http://"+webOrigins
+    "http://www.quest-nba.com/",
+    "https://www.quest-nba.com/",
 ]
 
 app.add_middleware(

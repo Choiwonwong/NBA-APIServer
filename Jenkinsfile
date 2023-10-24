@@ -7,8 +7,8 @@ pipeline {
         ECR_PATH='dkr.ecr.ap-northeast-1.amazonaws.com'
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential-v2'
-        IMAGE_NAME = 'nba-api'
-        IMAGE_VERSION = "1.3.2"
+        IMAGE_NAME = 'quest-api'
+        IMAGE_VERSION = "0.0.0"
     }
     stages {
 
@@ -19,14 +19,14 @@ pipeline {
                     url: 'https://github.com/Choiwonwong/NBA-APIServer.git'
             }
         }
-        stage('CORS Origin Registry') {
-            steps {                
-                sh '''
-                kubectl get secrets cors-origin -n api &&  kubectl delete secret cors-origin -n api
-                kubectl create secret generic cors-origin --from-literal=WEB_URL=$(kubectl get svc nba-web-service -n web -o jsonpath="{.status.loadBalancer.ingress[0].hostname}") -n api
-                '''
-            } 
-        }
+        // stage('CORS Origin Registry') {
+        //     steps {                
+        //         sh '''
+        //         kubectl get secrets cors-origin -n quest &&  kubectl delete secret cors-origin -n quest
+        //         kubectl create secret generic cors-origin --from-literal=WEB_URL=$(kubectl get svc quest-web-service -n quest -o jsonpath="{.status.loadBalancer.ingress[0].hostname}") -n quest
+        //         '''
+        //     } 
+        // }
         stage('build') {
             steps {
                 sh '''

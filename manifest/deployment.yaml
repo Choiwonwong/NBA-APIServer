@@ -1,65 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nba-api
-  namespace: api
-  labels:
-    app: nba-api
+  name: quest-api
+  namespace: quest
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: nba-api
+      app.kubernetes.io/name: quest-api
   template:
     metadata:
       labels:
-        app: nba-api
+        app.kubernetes.io/name: quest-api
     spec:
       containers:
-        - name: nba-api
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-api:1.3.2
+        - name: quest-api-ctn
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.0.0
           ports:
             - name: http
               containerPort: 8000
-          imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
-                name: nba-rds-credentials-secret
+                name: quest-rds-credentials-secret
             - secretRef:
-                name: nba-eks-url
+                name: quest-eks-url
             - secretRef:
-                name: nba-api-sa
+                name: quest-api-sa
+          # env:
+          #   - name: WEB_URL
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: cors-origin
+          #         key: WEB_URL
           volumeMounts:
-            - name: nba-api-ca
+            - name: quest-api-ca
               mountPath: "/root/.kube/"
               readOnly: true
-          env:
-            - name: WEB_URL
-              valueFrom:
-                secretKeyRef:
-                  name: cors-origin
-                  key: WEB_URL
       volumes:
-        - name: nba-api-ca
+        - name: quest-api-ca
           secret:
-            secretName: nba-api-sa
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nba-api-service
-  namespace: api
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-  labels:
-    app: nba-api
-spec:
-  selector:
-    app: nba-api
-  ports:
-    - protocol: TCP
-      port: 8000
-      targetPort: 8000
-  type: LoadBalancer
+            secretName: quest-api-sa

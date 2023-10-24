@@ -50,7 +50,6 @@ class UserEKSClientController:
             cluster_data = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
             return _write_cafile(cluster_data["certificateAuthority"]["data"])
         except Exception as e:
-            print(f"An error occurred while getting EKS CA: {str(e)}")
             return False
 
         

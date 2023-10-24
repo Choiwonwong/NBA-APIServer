@@ -2,18 +2,19 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: deployment-job
-  namespace: default
 spec:
   template:
     spec:
       containers:
       - name: my-container
-        image: public.ecr.aws/s2t1t5c1/seomj:6.0
+        image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-quest-deploy:0.1.1  # 사용할 컨테이너 이미지
         command: ["/bin/sh", "-c", "/deploy/deploy_test.sh"]
         envFrom:
         - secretRef:
             name: aws-credentials
+        - secretRef:
+            name: meta-data
         - configMapRef:
-            name: test-deploy-config
+            name: deploy-configmap
       restartPolicy: Never
   backoffLimit: 4

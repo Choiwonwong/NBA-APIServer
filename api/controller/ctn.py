@@ -55,10 +55,13 @@ class CTNController:
                  if running_pods:
                     pod_name = running_pods[0].metadata.name
             except ApiException as e:
-                raise Exception("No running deploy pods")
+                return False
+            
+        
         try: 
             response = v1.read_namespaced_pod_log(name=pod_name, namespace=self.namespace, follow=True, _preload_content=False)
             for log in response:
                 yield f"data: {log}\n\n"
         except ApiException as e:
-            print(f"Failed to get logs: {e.reason}")
+            return False
+            

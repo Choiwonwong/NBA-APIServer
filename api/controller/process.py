@@ -181,7 +181,35 @@ class ProcessController:
     
     def processQuestI(self):
         processedQuest = {}
-        processedQuest['metadata'] = {}
         processedQuest['provision'] = {}
         processedQuest['deploy'] = {}
+
+        processedQuest['provision']['requestTitle'] = self.quest.get("요청명")
+        processedQuest["provision"]["AWS_EKS_NAME"] = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks")
+        processedQuest['dataPlaneName'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane")
+
+
+        processedQuest["deploy"]["AWS_EKS_NAME"] = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks")
+        processedQuest["deploy"]["TITLE"] = self.quest.get("요청명")
+        processedQuest["deploy"]["NAMESPACE_NAME"] = self.quest.get("배포요청", {}).get("네임스페이스이름", "default")
+        processedQuest["deploy"]["DEPLOY_NAME"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("앱이름", "quest-app")
+        processedQuest["deploy"]["DEPLOY_REPLICAS"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("복제본개수", "quest-app")
+        processedQuest["deploy"]["DEPLOY_CONTAINER_IMAGE"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("이미지이름", "quest-app")
+        processedQuest["deploy"]["PORT"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("포트번호", "quest-app")
+        processedQuest["deploy"]["SVC_NAME"] = self.quest.get("배포요청", {}).get("서비스", {}).get("서비스이름", "quest-service")
+
+        secrets = self.quest.get("배포요청", {}).get("환경변수", {})
+        if secrets:
+            processedQuest["deploy"]["SECRET"] = "["
+            if isinstance(secrets, list):
+                for secret in secrets:
+                    if isinstance(secret, dict):
+                        processedQuest["deploy"]["SECRET"] = secret.get("이름")
+            elif isinstance(secrets, dict):
+                processedQuest["deploy"]["SECRET"] = secrets.get("이름")
+
+        ## 예시 SECRET='[{"KEY":1,"VALUE":2},{"KEY":3,"VALUE":4},{"KEY":5,"VALUE":6}]'
+
+
+
         return processedQuest
