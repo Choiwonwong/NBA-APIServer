@@ -1,8 +1,7 @@
 from api.models.connection import K8s_client
 from kubernetes import utils, client
 from kubernetes.client.rest import ApiException
-import yaml, time
-import asyncio
+import yaml
 
 class CTNController:
     def __init__(self, namespace):
@@ -56,8 +55,6 @@ class CTNController:
                     pod_name = running_pods[0].metadata.name
             except ApiException as e:
                 return False
-            
-        
         try: 
             response = v1.read_namespaced_pod_log(name=pod_name, namespace=self.namespace, follow=True, _preload_content=False)
             for log in response:
