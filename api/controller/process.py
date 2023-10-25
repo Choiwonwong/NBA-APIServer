@@ -28,7 +28,7 @@ class ProcessController:
         userQuestYaml = {
             "요청_명": self.quest.get("요청명"),
             "요청_타입": self.quest.get("요청타입", "전체"),
-            "AWS_지역_명": self.quest.get("배포_지역_명", "도쿄"),
+            "AWS_지역_명": self.quest.get("AWS인증정보", {}).get("배포지역명", "도쿄"),
             "네트워크_요청": {
                 "개인_작업_네트워크_공간(VPC)": self.quest.get("네트워크요청", {}).get("개인작업네트워크공간", "1") + "개",
                 "인터넷_가능_블럭_네트워크(Public_Subnet)": self.quest.get("네트워크요청", {}).get("인터넷가능블럭네트워크", "2") + "개",
@@ -190,7 +190,7 @@ class ProcessController:
         processedQuest["provision"]['AWS_DATAPLANE_NAME'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane")
         processedQuest["provision"]['INSTANCE_TYPE'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "t3.medium")
         processedQuest["provision"]['CAPACITY_TYPE'] = "SPOT"
-        processedQuest["provision"]["PRI_SUB_COUNT"] = str(self.quest.get("네트워크요청", {}).get("인터넷가능블럭네트워크", 2))
+        processedQuest["provision"]["PUB_SUB_COUNT"] = str(self.quest.get("네트워크요청", {}).get("인터넷가능블럭네트워크", 2))
         processedQuest["provision"]["PRI_SUB_COUNT"] = str(self.quest.get("네트워크요청", {}).get("인터넷불가능블럭네트워크", 2))
         processedQuest["provision"]['SCALING_MAX'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최대", 4))
         processedQuest["provision"]['SCALING_MIN'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최소", 2))
