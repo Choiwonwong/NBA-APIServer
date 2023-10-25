@@ -23,7 +23,7 @@ class RequestsOutput(BaseModel): # 웹서버로 전달을 해주는 모델, 진�
     tries: int
 
 class WebHook(BaseModel):
-    request_id: int
+    id: int
     progress: str
     state: str
     emessage: str | None = None

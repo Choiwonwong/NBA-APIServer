@@ -28,7 +28,7 @@ class ProcessController:
         userQuestYaml = {
             "요청_명": self.quest.get("요청명"),
             "요청_타입": self.quest.get("요청타입", "전체"),
-            "AWS_지역_명": self.quest.get("AWS인증정보", {}).get("배포지역명", "도쿄"),
+            "AWS_지역_명": self.quest.get("AWS인증정보", {}).get("AWS지역명", "도쿄"),
             "네트워크_요청": {
                 "개인_작업_네트워크_공간(VPC)": self.quest.get("네트워크요청", {}).get("개인작업네트워크공간", "1") + "개",
                 "인터넷_가능_블럭_네트워크(Public_Subnet)": self.quest.get("네트워크요청", {}).get("인터넷가능블럭네트워크", "2") + "개",
@@ -173,7 +173,7 @@ class ProcessController:
         result['deploymentName'] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("앱이름", "quest-app")
         result['serviceName'] = self.quest.get("배포요청", {}).get("서비스", {}).get("서비스이름", "quest-service")
         
-        if "서울" in self.quest.get("배포_지역_명", "도쿄"):
+        if "서울" in self.quest.get("AWS지역명", "도쿄"):
             result['awsRegionName'] = "ap-northeast-2"
         else:
             result['awsRegionName'] = "ap-northeast-1"

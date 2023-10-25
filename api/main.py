@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 app.include_router(requests.router , prefix='/api/requests')
-app.include_router(webhook.router , prefix='/api/webhook')
+app.include_router(webhook.router , prefix='/api')
 
 @app.get('/api/health', tags=['healthcheck'])
 async def get_namespaces():

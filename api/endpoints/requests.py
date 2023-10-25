@@ -243,7 +243,7 @@ async def createRequest(
     ctnController = CTNController(namespace=serviceNSName)
     
     if quest_data['요청타입'] != "배포":
-        update_request(session=session, request= request, request_data={"processState": "성공", "progress": "프로비저닝", "provisionState": "진행 중"})
+        update_request(session=session, request= request, request_data={"processState": "성공", "progress": "프로비저닝", "provisionState": "시작"})
         resultProvisionPod = ctnController.createPod()
         if not resultProvisionPod:
             data = {"provisionState": "실패", "emessage": "프로비저닝 실행자 생성 실패."}
@@ -251,7 +251,7 @@ async def createRequest(
             raise HTTPException(status_code=500, detail="프로비저닝 실행자 생성 실패.")
     else:
         resultProvisionPod = ctnController.createJob()
-        update_request(session=session, request= request, request_data={"processState": "성공", "progress": "배포", "provisionState": "진행 중"})
+        update_request(session=session, request= request, request_data={"processState": "성공", "progress": "배포", "provisionState": "시작"})
         if not resultProvisionPod:
             data = {"provisionState": "실패", "emessage": "베포 실행자 생성 실패."}
             update_request(session=session, request= request, request_data=data)

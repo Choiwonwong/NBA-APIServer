@@ -7,9 +7,9 @@ from api.controller.ctn import CTNController
 
 router = APIRouter()
 
-@router.post('/', tags=['webhook'])
+@router.post('/webhook', tags=['webhook'])
 def webhook(webhookData: WebHook, session: Session = Depends(get_session)):
-    request = get_request_by_id(session, webhookData.request_id)
+    request = get_request_by_id(session, webhookData.id)
     if not request:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
     
