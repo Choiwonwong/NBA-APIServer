@@ -39,7 +39,7 @@ class ProcessController:
             "컴퓨팅_요청": {
                 "컨트롤_플레인(EKS)": {
                     "이름": self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks"),
-                    "버전": self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("버전", "1.27"),     
+                    "버전": self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("버전", "1.27"),
                     "방화벽": [],
                 },
                 "데이터_플레인": {
@@ -184,32 +184,42 @@ class ProcessController:
         processedQuest['provision'] = {}
         processedQuest['deploy'] = {}
 
-        processedQuest['provision']['requestTitle'] = self.quest.get("요청명")
+        processedQuest['provision']['TITLE'] = self.quest.get("요청명")
         processedQuest["provision"]["AWS_EKS_NAME"] = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks")
-        processedQuest['dataPlaneName'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane")
-
+        processedQuest["provision"]["EKS_VER"] = str(self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("버전", 1.27))
+        processedQuest["provision"]['AWS_DATAPLANE_NAME'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane")
+        processedQuest["provision"]['INSTANCE_TYPE'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "t3.medium")
+        processedQuest["provision"]['CAPACITY_TYPE'] = "SPOT"
+        processedQuest["provision"]['SCALING_MAX'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최대", 4))
+        processedQuest["provision"]['SCALING_MIN'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최소", 2))
+        processedQuest["provision"]['SCALING_DESIRE'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("요구", 3))
+        processedQuest["provision"]['DL'] = "$"
 
         processedQuest["deploy"]["AWS_EKS_NAME"] = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks")
         processedQuest["deploy"]["TITLE"] = self.quest.get("요청명")
         processedQuest["deploy"]["NAMESPACE_NAME"] = self.quest.get("배포요청", {}).get("네임스페이스이름", "default")
         processedQuest["deploy"]["DEPLOY_NAME"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("앱이름", "quest-app")
-        processedQuest["deploy"]["DEPLOY_REPLICAS"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("복제본개수", "quest-app")
+        processedQuest["deploy"]["DEPLOY_REPLICAS"] = str(self.quest.get("배포요청", {}).get("애플리케이션", {}).get("복제본개수", 3))
         processedQuest["deploy"]["DEPLOY_CONTAINER_IMAGE"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("이미지이름", "quest-app")
-        processedQuest["deploy"]["PORT"] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("포트번호", "quest-app")
+        processedQuest["deploy"]["PORT"] = str(self.quest.get("배포요청", {}).get("애플리케이션", {}).get("포트번호"))
         processedQuest["deploy"]["SVC_NAME"] = self.quest.get("배포요청", {}).get("서비스", {}).get("서비스이름", "quest-service")
 
+        security_groups = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("방화벽", {})
+        if security_groups:
+            firewall_rules = []
+            for rule in security_groups:
+                firewall_rule = {
+                        "from_port": rule.get("허용포트"),
+                        "to_port": rule.get("허용포트"),
+                        "protocol": "tcp",
+                        "cidr_blocks": [rule.get("허용대역")]
+                    }    
+                firewall_rules.append(firewall_rule)
+            processedQuest["provision"]["TF_VAR_SECURITY_GROUP_INGRESS"] = str(firewall_rules)
         secrets = self.quest.get("배포요청", {}).get("환경변수", {})
         if secrets:
-            processedQuest["deploy"]["SECRET"] = "["
-            if isinstance(secrets, list):
-                for secret in secrets:
-                    if isinstance(secret, dict):
-                        processedQuest["deploy"]["SECRET"] = secret.get("이름")
-            elif isinstance(secrets, dict):
-                processedQuest["deploy"]["SECRET"] = secrets.get("이름")
-
-        ## 예시 SECRET='[{"KEY":1,"VALUE":2},{"KEY":3,"VALUE":4},{"KEY":5,"VALUE":6}]'
-
-
-
+            tmp = []
+            for secret in secrets:
+                tmp.append({"key": secret.get("이름"), "value": secret.get("값")})
+                processedQuest["deploy"]["SECRET"] = str(tmp)
         return processedQuest

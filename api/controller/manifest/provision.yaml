@@ -1,11 +1,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: provision
+  name: nginx-pod
 spec:
   containers:
-  - name: provision-ctn
+  - name: nginx-container
     image: nginx:latest
+    ports:
+      - name: tcp
+        containerPort: 80
     envFrom:
     - secretRef:
         name: aws-credentials
@@ -13,3 +16,21 @@ spec:
         name: meta-data
     - configMapRef:
         name: provision-config
+    - configMapRef:
+        name: deploy-config
+
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: provision
+# spec:
+#   containers:
+#   - name: provision-ctn
+#     image: nginx:latest
+#     envFrom:
+#     - secretRef:
+#         name: aws-credentials
+#     - secretRef:
+#         name: meta-data
+#     - configMapRef:
+#         name: provision-config

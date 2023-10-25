@@ -190,9 +190,9 @@ async def createRequest(
     serviceNSName = f"quest-{request.id}"
 
     aws_credentials = {
-        "AWS_ACCESS_KEY_ID": quest_data['AWS계정접근키'],
-        "AWS_SECRET_ACCESS_KEY": quest_data['AWS계정비밀키'],
-        "AWS_DEFAULT_REGION": quest_data['AWS지역명'],
+        "AWS_ACCESS_KEY_ID": request.awsAccessKey,
+        "AWS_SECRET_ACCESS_KEY": request.awsSecretKey,
+        "AWS_DEFAULT_REGION": request.awsRegionName,
         "AWS_DEFAULT_OUTPUT": "json"
     }
     
@@ -209,10 +209,9 @@ async def createRequest(
         update_request(session=session, request= request, request_data=data)
         raise HTTPException(status_code=500, detail="Failed to create AWS credentials Secret.")
     
-    api_endpoint = configController.getAPIEndPoint()
     metadata = {
         "ID": str(request.id),
-        "API_ENDPOINT": f"{api_endpoint}:8000"
+        "API_ENDPOINT": "quest-api-service.quest.svc.cluster.local:8000/api/webhook"
     }
     resultMetadataSecret = configController.createSecret(name="meta-data", data=metadata)
     if not resultMetadataSecret:
@@ -228,10 +227,10 @@ async def createRequest(
         update_request(session=session, request= request, request_data=data)
         raise HTTPException(status_code=500, detail="처리 중 오류 발생")
     
-    if quest_data['요청_타입'] != "배포":
+    if quest_data['요청타입'] != "배포":
         resultProvisionCM = configController.createCM(type="provision", data=processedQuest['provision'])
         if not resultProvisionCM:
-            data = {"processState": "실패", "emssage": "프로비저닝 정보 생성 실패"}
+            data = {"processState": "실패", "emessage": "프로비저닝 정보 생성 실패"}
             update_request(session=session, request= request, request_data=data)
             raise HTTPException(status_code=500, detail="Failed to create Provision ConfigMap.")
     
@@ -243,7 +242,7 @@ async def createRequest(
     
     ctnController = CTNController(namespace=serviceNSName)
     
-    if quest_data['요청_타입'] != "배포":
+    if quest_data['요청타입'] != "배포":
         update_request(session=session, request= request, request_data={"processState": "성공", "progress": "프로비저닝", "provisionState": "진행 중"})
         resultProvisionPod = ctnController.createPod()
         if not resultProvisionPod:

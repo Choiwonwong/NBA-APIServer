@@ -1,7 +1,6 @@
 from api.models.connection import K8s_client
-from kubernetes import utils, client
+from kubernetes import client
 from kubernetes.client.rest import ApiException
-import yaml
 
 configType = {"provision", "deploy"}
 secretType = {"metadata", "awscredentials"}
@@ -31,20 +30,22 @@ class ConfigController:
         if type not in configType:
             print("Invalid 'type' parameter. It must be 'provision' or 'deploy'.")
             return False
-            
+        
         name = f"{type}-config"
-        with open(f'api/controller/manifest/{type}-config.yaml', 'r') as manifest_file:
-            configmap_manifest = yaml.safe_load(manifest_file)
-            configmap_manifest['metadata']['name'] = name
-            for key, value in data.items():
-                configmap_manifest['data'][key] = value
-            try:
-                utils.create_from_dict(K8s_client, configmap_manifest, namespace=self.namespace)
-                print(f"ConfigMap '{name}' created in namespace '{self.namespace}'.")
-                return True
-            except ApiException as e:
-                print(f"Error creating ConfigMap: {e}")
-                return False
+        v1 = client.CoreV1Api(self.k8sClient)
+        configmap = {
+            'metadata': {
+                'name': name
+            },
+            'data': data
+        }
+        try:
+            v1.create_namespaced_config_map(self.namespace, configmap)
+            print(f"{type} ConfigMap created.")
+            return True
+        except ApiException as e:
+            print(f"Error creating AWS credentials Secret: {e}")
+            return False
     
     def createSecret(self, name: str, data:dict):
         name = f"{name}"
@@ -61,13 +62,4 @@ class ConfigController:
             return True
         except ApiException as e:
             print(f"Error creating AWS credentials Secret: {e}")
-            return False
-        
-    def getAPIEndPoint(self):
-        v1 = client.CoreV1Api(self.k8sClient)
-        try:
-            api_endpoint = v1.read_namespaced_service("nba-api-service", "api").status.load_balancer.ingress[0].hostname
-            return api_endpoint
-        except ApiException as e:
-            print(f"Error getting API endpoint: {e}")
             return False
