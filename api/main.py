@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints import requests, webhook
 from api.models.connection import K8s_client
 from kubernetes import client
+import logging
+
+class EndpointFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.getMessage().find("/api/health") == -1
 
 app = FastAPI(docs_url='/api/docs', openapi_url='/api/openapi.json')
 
@@ -41,3 +46,5 @@ async def get_namespaces():
         return {
             "error": f"An error occurred: {str(e)}"
         }
+    
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter())

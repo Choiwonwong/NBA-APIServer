@@ -51,8 +51,6 @@ class UserEKSClientController:
             return _write_cafile(cluster_data["certificateAuthority"]["data"])
         except Exception as e:
             return False
-
-        
     
     def _k8s_api_client_config(self, endpoint: str, token: str, cafile: str):
         kconfig = kubernetes.config.kube_config.Configuration(
@@ -79,6 +77,34 @@ class UserEKSClientController:
             return False 
         eks_client = self._k8s_api_client_config(endpoint, token, cafile)
         return eks_client
+    
+    def check_eks_present(self):
+        result = False
+        eks_client = self.session.client('eks')
+        try:
+            eks_client.describe_cluster(name=self.cluster_name)["cluster"]["status"]
+            result = True
+        except Exception as e:
+            print("There is No EKS")
+        return result
+
+    def check_ng_present(self):
+        result = False
+        eks_client = self.session.client('eks')
+        try:
+            eks_client.describe_nodegroup(clusterName=self.cluster_name, nodegroupName=self.dataplane_name)["nodegroup"]
+            result = True
+        except Exception as e:
+            print("There is No NodeGroup")
+        return result
+    
+    def check_eks_active(self):
+        result = False
+        eks_client = self.session.client('eks')
+        status = eks_client.describe_cluster(name=self.cluster_name)["cluster"]["status"]
+        if status == "ACTIVE":
+            result = True
+        return result
     
     def get_provision_info(self):
         result = {}
@@ -131,11 +157,10 @@ class UserEKSClientController:
         namespace_name = data['namespace']
         deployment_name = data['deployment_name']
         service_name = data['service_name']
-        result = {"eks_present": True}
+        result = {}
         result["namespace_name"] = namespace_name
         result["deployment_name"] = deployment_name
         result["service_name"] = service_name
-      
 
         try:
             kube_client.read_namespace(namespace_name)

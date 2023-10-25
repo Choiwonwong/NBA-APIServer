@@ -29,12 +29,12 @@ class ProcessController:
             "요청_명": self.quest.get("요청명"),
             "요청_타입": self.quest.get("요청타입", "전체"),
             "AWS_지역_명": self.quest.get("AWS인증정보", {}).get("AWS지역명", "도쿄"),
-            "네트워크_요청": {
-                "개인_작업_네트워크_공간(VPC)": self.quest.get("네트워크요청", {}).get("개인작업네트워크공간", "1") + "개",
-                "인터넷_가능_블럭_네트워크(Public_Subnet)": self.quest.get("네트워크요청", {}).get("인터넷가능블럭네트워크", "2") + "개",
-                "인터넷_불가능_블럭_네트워크(Private_Subnet)": self.quest.get("네트워크요청", {}).get("인터넷불가능블럭네트워크", "2") + "개",
-                "인터넷_게이트웨이(IGW)": self.quest.get("네트워크요청", {}).get("인터넷게이트웨이", "1") + "개",
-                "인터넷주소_변환_게이트웨이(NAT_GW)": self.quest.get("네트워크요청", {}).get("인터넷주소변환게이트웨이", "1") + "개",
+            "네트워크_환경": {
+                "개인_작업_네트워크_공간(VPC)": self.quest.get("네트워크환경", {}).get("개인작업네트워크공간", "1") + "개",
+                "인터넷_가능_블럭_네트워크(Public_Subnet)": self.quest.get("네트워크환경", {}).get("인터넷가능블럭네트워크", "2") + "개",
+                "인터넷_불가능_블럭_네트워크(Private_Subnet)": self.quest.get("네트워크환경", {}).get("인터넷불가능블럭네트워크", "2") + "개",
+                "인터넷_게이트웨이(IGW)": self.quest.get("네트워크환경", {}).get("인터넷게이트웨이", "1") + "개",
+                "인터넷주소_변환_게이트웨이(NAT_GW)": self.quest.get("네트워크환경", {}).get("인터넷주소변환게이트웨이", "1") + "개",
             },
             "컴퓨팅_요청": {
                 "컨트롤_플레인(EKS)": {
@@ -45,8 +45,8 @@ class ProcessController:
                 "데이터_플레인": {
                     "이름": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane"),
                     "기반": fixedQuest+ "가상머신",
-                    "스펙": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "t3.medium"),
                     "과금방식": fixedQuest + "SPOT",
+                    "스펙": None,
                     "가상머신_개수": {
                         "최대": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최대", "4") + "개",
                         "최소": self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최소", "2") + "개",
@@ -69,6 +69,14 @@ class ProcessController:
                 "환경_변수": [],
             }
         }
+
+        spec = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "중")
+        spec_Dict = {
+            "대": "t3.large",
+            "중": "t3.medium",
+            "소": "t3.small"
+        }
+        userQuestYaml["컴퓨팅_요청"]["데이터_플레인"]["스펙"] = spec + f"({spec_Dict.get(spec)})"
 
         # 방화벽 처리
         firewall_item = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("방화벽")
@@ -101,11 +109,13 @@ class ProcessController:
                     if isinstance(item, dict):
                         env_entry = {
                             "환경_변수_명": item.get("이름"),
+                            "환경_변수_값": item.get("값")
                         }
                         userQuestYaml["배포_요청"]["환경_변수"].append(env_entry)
             elif isinstance(env_list, dict):
                 env_entry = {
                     "환경_변수_명": env_list.get("이름"),
+                    "환경_변수_값": item.get("값")
                 }
                 userQuestYaml["배포_요청"]["환경_변수"].append(env_entry)
         else:
@@ -117,7 +127,7 @@ class ProcessController:
                 "요청_명": userQuestYaml.get('요청_명', ''),
                 "요청_타입": userQuestYaml.get('요청_타입', ''),
                 "AWS_지역_명": userQuestYaml.get('AWS_지역_명', ''),
-                '네트워크_요청': userQuestYaml.get('네트워크_요청', {}),
+                '네트워크_환경': userQuestYaml.get('네트워크_환경', {}),
                 '컴퓨팅_요청': userQuestYaml.get('컴퓨팅_요청', {}),
                 '배포_요청': userQuestYaml.get('배포_요청', {}),
             }
@@ -139,7 +149,6 @@ class ProcessController:
         return processedQuest
     
     def checkAWSCredential(self):
-        
         if self.quest.get("AWS인증정보").get("AWS계정접근키") == "" or self.quest.get("AWS인증정보").get("AWS계정비밀키") == "": 
             print("AWS Credential is not valid.")
             return False        
@@ -188,14 +197,22 @@ class ProcessController:
         processedQuest["provision"]["AWS_EKS_NAME"] = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks")
         processedQuest["provision"]["EKS_VER"] = str(self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("버전", 1.27))
         processedQuest["provision"]['AWS_DATAPLANE_NAME'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane")
-        processedQuest["provision"]['INSTANCE_TYPE'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "t3.medium")
         processedQuest["provision"]['CAPACITY_TYPE'] = "SPOT"
-        processedQuest["provision"]["PUB_SUB_COUNT"] = str(self.quest.get("네트워크요청", {}).get("인터넷가능블럭네트워크", 2))
-        processedQuest["provision"]["PRI_SUB_COUNT"] = str(self.quest.get("네트워크요청", {}).get("인터넷불가능블럭네트워크", 2))
+        processedQuest["provision"]["PUB_SUB_COUNT"] = str(self.quest.get("네트워크환경", {}).get("인터넷가능블럭네트워크", 2))
+        processedQuest["provision"]["PRI_SUB_COUNT"] = str(self.quest.get("네트워크환경", {}).get("인터넷불가능블럭네트워크", 2))
         processedQuest["provision"]['SCALING_MAX'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최대", 4))
         processedQuest["provision"]['SCALING_MIN'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최소", 2))
         processedQuest["provision"]['SCALING_DESIRE'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("요구", 3))
         processedQuest["provision"]['DL'] = "$"
+        processedQuest["provision"]['LB_EOF'] = "EOF"
+
+        spec_list = {
+            "대": "t3.large",
+            "중": "t3.medium",
+            "소": "t3.small"
+        }
+        spec = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "중")
+        processedQuest["provision"]['INSTANCE_TYPE'] = spec_list.get(spec)
 
         processedQuest["deploy"]["AWS_EKS_NAME"] = self.quest.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "quest-eks")
         processedQuest["deploy"]["TITLE"] = self.quest.get("요청명")

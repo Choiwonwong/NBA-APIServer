@@ -80,15 +80,37 @@ async def checkQuest(file: UploadFile):
         if not get_nested_value(quest_data, field_path):
             response["message"] = f"'{field_path.replace('.', ' > ')}'가 없습니다."
             raise HTTPException(status_code=400, detail=response)
-        
-    if quest_data.get("AWS인증정보").get("AWS지역명", None) not in ["서울", "도쿄"]:
-        response["message"] = f"현재는 서울과 도쿄 지역만 지원합니다. 다시 요청해주세요"
+
+    if quest_data.get("요청타입", "전체") not in ["전체", "배포"]:
+        response["message"] = f"현재는 배포 요청과 전체 요청(프로비저닝 및 배포)만을 지원합니다. 다시 요청해주세요"
         raise HTTPException(status_code=400, detail=response)
 
-    spec_value = quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", None)
-    if spec_value and not spec_value.startswith("t3."):
-        response["message"] = f"가상 머신은 현재 t3 계열만 지원합니다. 다시 요청해주세요"
+    if quest_data.get("AWS인증정보").get("AWS지역명", "도쿄") not in ["서울", "도쿄"]:
+        response["message"] = "현재는 서울과 도쿄 지역만 지원합니다. 다시 요청해주세요"
         raise HTTPException(status_code=400, detail=response)
+
+    spec_value = quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "중")
+    if spec_value not in ["대", "중", "소"]:
+        response["message"] = "가상 머신 스펙은 대(t3.large), 중(t3.medium), 소(t3.micro)만 지원합니다. 한글로 입력하시고 다시 요청해주세요"
+        raise HTTPException(status_code=400, detail=response)
+    
+    integer_inputs = [
+        ("인터넷_가능_블럭_네트워크", quest_data.get("네트워크환경", {}).get("인터넷가능블럭네트워크", 0)),
+        ("인터넷_불가능_블럭_네트워크", quest_data.get("네트워크환경", {}).get("인터넷불가능블럭네트워크", 0)),
+        ("가상머신_개수 > 최대", quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최대", 0)),
+        ("가상머신_개수 > 최소", quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최소", 0)),
+        ("가상머신_개수 > 요구", quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("요구", 0)),
+        ("컨트롤_플레인 > 버전", quest_data.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("버전", 1.0)),
+        ("애플리케이션_요청 > 포트_번호", quest_data.get("배포요청", {}).get("애플리케이션", {}).get("포트번호", 0)),
+        ("애플리케이션_요청 > 복제본_개수", quest_data.get("배포요청", {}).get("애플리케이션", {}).get("복제본개수", 0)),
+    ]
+    
+    for key, value in integer_inputs:
+        try: 
+            float(value)
+        except:
+            response["message"] = f"'{key}'을(를) 정수로 입력해주세요."
+            raise HTTPException(status_code=400, detail=response)
     
     env_list = quest_data.get("배포요청", {}).get("환경변수", None)
     if env_list:
@@ -128,23 +150,38 @@ def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)
         "dataplane_name": request.dataPlaneName
     }
 
+    result = {
+        "provision" : None,
+        "deploy": None,
+        "eks_present": False,
+        "ng_present": False,
+        "eks_active": False,
+    }
+
     userEKSController  = UserEKSClientController(data=controllerData)
 
-    deployRequest = {
-    'namespace': request.namespaceName,
-    'deployment_name': request.deploymentName,
-    'service_name': request.serviceName
-    }
+    eks_present = userEKSController.check_eks_present()
+    ng_present = userEKSController.check_ng_present()
 
-    provisionData = userEKSController.get_provision_info()
-    deployData = userEKSController.get_deploy_info(data=deployRequest)
+    if eks_present == True:
+        provisionData = userEKSController.get_provision_info()
+        result["eks_present"] = eks_present
+        result["ng_present"] = ng_present
+        result["provision"] = provisionData
+    else:
+        return result    
+    eks_active = userEKSController.check_eks_active()
 
-    result = {
-        "provision" : provisionData,
-        "deploy": deployData
-    }
+    if eks_active == True:
+        deployRequest = {
+            'namespace': request.namespaceName,
+            'deployment_name': request.deploymentName,
+            'service_name': request.serviceName
+        }
+        deployData = userEKSController.get_deploy_info(data=deployRequest)
+        result["eks_active"] = eks_active
+        result["deploy"] = deployData
     return result
-
 
 ################################################################################################################### OK
 

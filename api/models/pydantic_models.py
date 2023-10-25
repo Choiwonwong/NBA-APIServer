@@ -7,7 +7,6 @@ class RequestsUpdate(BaseModel): # 갱신을 위한 검증 폼 - 단계, 프로�
     provisionState: str | None
     deployState: str | None
     emessage: str | None
-    tries: int | None
 
 class RequestsOutput(BaseModel): # 웹서버로 전달을 해주는 모델, 진행 상태에 따라 provisionState 또는 deployState가 None이 될 수 있음
     id: int
@@ -20,7 +19,6 @@ class RequestsOutput(BaseModel): # 웹서버로 전달을 해주는 모델, 진�
     provisionState: str | None
     deployState: str | None
     emessage: str | None = None
-    tries: int
 
 class WebHook(BaseModel):
     id: int

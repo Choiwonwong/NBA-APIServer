@@ -15,5 +15,6 @@ spec:
         - secretRef:
             name: meta-data
         - configMapRef:
-            name: deploy-config
+            name: deploy-configmap
       restartPolicy: Never
+  backoffLimit: 1
