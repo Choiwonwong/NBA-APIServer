@@ -190,6 +190,8 @@ class ProcessController:
         processedQuest["provision"]['AWS_DATAPLANE_NAME'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "quest-data-plane")
         processedQuest["provision"]['INSTANCE_TYPE'] = self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "t3.medium")
         processedQuest["provision"]['CAPACITY_TYPE'] = "SPOT"
+        processedQuest["provision"]["PRI_SUB_COUNT"] = str(self.quest.get("네트워크요청", {}).get("인터넷가능블럭네트워크", 2))
+        processedQuest["provision"]["PRI_SUB_COUNT"] = str(self.quest.get("네트워크요청", {}).get("인터넷불가능블럭네트워크", 2))
         processedQuest["provision"]['SCALING_MAX'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최대", 4))
         processedQuest["provision"]['SCALING_MIN'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("최소", 2))
         processedQuest["provision"]['SCALING_DESIRE'] = str(self.quest.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("가상머신개수", {}).get("요구", 3))

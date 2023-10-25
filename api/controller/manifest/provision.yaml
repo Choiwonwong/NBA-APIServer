@@ -5,7 +5,7 @@ metadata:
 spec:
    containers:
    - name: provision-ctn
-     image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba_full_provision:2.0
+     image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba_full_provision:2.1
      envFrom:
        - configMapRef:
           name: provision-config
