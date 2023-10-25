@@ -12,10 +12,11 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: quest-api
+        app: api
     spec:
       containers:
         - name: quest-api-ctn
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.0.6
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.0.7
           ports:
             - name: http
               containerPort: 8000
