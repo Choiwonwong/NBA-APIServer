@@ -21,7 +21,7 @@ def webhook(webhookData: WebHook, session: Session = Depends(get_session)):
 
     if progress == "provision" and state == "success":
         # 배포 잡 생성
-        update_request(session, request, {"progress": "deploy", "provisionState": "성공", "deployState": "시작"})
+        update_request(session, request, {"progress": "배포", "provisionState": "성공", "deployState": "시작"})
         resultDeployJob = ctnController.createJob()
         if not resultDeployJob:
             data = {"provisionState": "실패", "emessage": "Failed to create Provision Pod."}
@@ -29,7 +29,7 @@ def webhook(webhookData: WebHook, session: Session = Depends(get_session)):
             raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
         
     elif progress == "provision" and state == "failed":
-        update_request(session, request, {"progress": "deploy", "provisionState": "실패", "emessage": emessage})
+        update_request(session, request, {"progress": "프로비저닝", "provisionState": "실패", "emessage": emessage})
         resultProvisionPod = ctnController.createPod()
         if not resultProvisionPod:
             data = {"provisionState": "실패", "emesage": "Failed to create Provision Pod."}
@@ -37,10 +37,10 @@ def webhook(webhookData: WebHook, session: Session = Depends(get_session)):
             raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
 
     elif progress == "deploy" and state == "success":
-        update_request(session, request, {"progress": "deploy", "deployState": "성공"})
+        update_request(session, request, {"progress": "배포", "deployState": "성공"})
     
     elif progress == "deploy" and state == "failed":
-        update_request(session, request, {"progress": "deploy", "deployState": "실패", "emessage": emessage})
+        update_request(session, request, {"progress": "배포", "deployState": "실패", "emessage": emessage})
         resultDeployJob = ctnController.createJob()
         if not resultDeployJob:
             data = {"deployState": "실패", "emessage": "Failed to create Deploy Job."}

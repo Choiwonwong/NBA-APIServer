@@ -1,6 +1,6 @@
 from .schemas import Request
 from sqlalchemy.orm import Session
-from datetime import datetime as date
+from datetime import datetime, timedelta
 
 def create_request(session: Session, request_data: dict) -> Request:
     request_dict = request_data
@@ -8,8 +8,8 @@ def create_request(session: Session, request_data: dict) -> Request:
         **request_dict,
         progress="처리",
         processState="시작",
-        createdAt=date.now() + date.timedelta(hours=9),
-        updatedAt=date.now() + date.timedelta(hours=9),
+        createdAt=datetime.now() + timedelta(hours=9),
+        updatedAt=datetime.now() + timedelta(hours=9),
     )
     session.add(new_request)
     session.commit()
@@ -32,7 +32,7 @@ def get_requests(session: Session) -> list[Request]:
 def update_request(session: Session, request: Request, request_data: dict) -> Request:
     for field, value in request_data.items() :
         setattr(request, field, value)
-    setattr(request, "updatedAt", date.now() + date.timedelta(hours=9))
+    setattr(request, "updatedAt", datetime.now() + timedelta(hours=9))
     session.commit()
     session.refresh(request)
     return request
