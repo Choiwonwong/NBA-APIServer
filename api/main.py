@@ -22,11 +22,10 @@ app.add_middleware(
 app.include_router(requests.router , prefix='/api/requests')
 app.include_router(webhook.router , prefix='/api/webhook', deprecated=True)
 
-@app.get('/api')
+@app.get('/api', tags=['check'])
 async def get_namespaces():
     CoreV1Api_client = client.CoreV1Api(K8s_client)
     try:
-        # Check if the connection to the Kubernetes client is working
         if CoreV1Api_client:
             namespaces = CoreV1Api_client.list_namespace()
             namespace_names = [namespace.metadata.name for namespace in namespaces.items]
