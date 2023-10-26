@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: deploy-ctn
-        image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-quest-deploy:0.2.2
+        image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-quest-deploy:0.2.3
         command: ["/bin/sh", "-c", "/deploy/deploy_test.sh"]
         envFrom:
         - secretRef:
@@ -20,4 +20,4 @@ spec:
         - configMapRef:
             name: deploy-config
       restartPolicy: Never
-  backoffLimit: 1
+  backoffLimit: 0
