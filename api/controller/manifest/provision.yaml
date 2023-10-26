@@ -7,7 +7,7 @@ metadata:
 spec:
    containers:
    - name: provision-ctn
-     image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba_full_provision:2.2.4
+     image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba_full_provision:2.1
      envFrom:
        - configMapRef:
           name: provision-config
@@ -16,20 +16,18 @@ spec:
        - secretRef:
            name: meta-data
      command : ["/bin/bash", "-c"]
-     args: ["/provision/rev.03_full_pro.sh && tail -f /dev/null"]
+     args: ["/provision/rev.031_full_pro.sh && tail -f /dev/null"]
    restartPolicy: Never
-        
+
+
 # apiVersion: v1
 # kind: Pod
 # metadata:
-#   name: nginx-pod
+#   name: provision
 # spec:
 #   containers:
-#   - name: nginx-container
+#   - name: provision-ctn
 #     image: nginx:latest
-#     ports:
-#       - name: tcp
-#         containerPort: 80
 #     envFrom:
 #     - secretRef:
 #         name: aws-credentials
@@ -39,3 +37,4 @@ spec:
 #         name: provision-config
 #     - configMapRef:
 #         name: deploy-config
+          

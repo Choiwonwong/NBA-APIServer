@@ -13,3 +13,5 @@ spec:
         name: meta-data
     - configMapRef:
         name: provision-config
+    - configMapRef:
+        name: deploy-config
