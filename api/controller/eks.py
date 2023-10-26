@@ -110,11 +110,14 @@ class UserEKSClientController:
         result = {}
         eks_client = self.session.client('eks')
         as_client = self.session.client('autoscaling')
+        vpc_client = self.session.client('ec2')
 
         result["eks_name"] = self.cluster_name
         result["dataplane_name"] = self.dataplane_name
         result["dataplane_type"] = "가상머신"
-    
+        result["public_subnet_count"] = 0
+        result["private_subnet_count"] = 0
+        
         try:
             eks_infos = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
             result["eks_version"] = eks_infos["version"]
@@ -124,6 +127,30 @@ class UserEKSClientController:
             result["eks_version"] = not_presented
             result["eks_status"] = not_presented
             result["eks_endpoint"] = not_presented
+        
+        try:
+            vpc_id = eks_client.describe_cluster(name='nba-eks')['cluster']['resourcesVpcConfig']['vpcId']
+            vpc_response = vpc_client.describe_vpcs(VpcIds=[vpc_id])
+            if vpc_response['Vpcs']:
+                vpc_tags = vpc_response['Vpcs'][0].get('Tags', [])
+                for tag in vpc_tags:
+                    if tag['Key'] == 'Name':
+                        result["vpc_name"] = tag['Value']        
+        except Exception as e:
+            result["vpc_name"] = None
+        
+        
+        try: 
+            subnet_response = vpc_client.describe_subnets(Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])
+            for subnet in subnet_response['Subnets']:
+                is_public = subnet['MapPublicIpOnLaunch']
+                if is_public:
+                    result["public_subnet_count"] += 1
+                else:
+                    result["private_subnet_count"] += 1
+        except Exception as e:
+            pass
+
         try:
             ng_infos = eks_client.describe_nodegroup(clusterName=self.cluster_name, nodegroupName=self.dataplane_name)["nodegroup"]
             result["dp_status"] = ng_infos["status"]
@@ -170,9 +197,12 @@ class UserEKSClientController:
         try:
             deployment = apps_v1_client.read_namespaced_deployment(deployment_name, namespace_name)
             result["deployment_status"] = deployment.status.conditions[-1].type
+            result["replicas"] = deployment.spec.replicas
+            result["image_name"] = deployment.spec.template.spec.containers[0].image
         except kubernetes.client.rest.ApiException as e:
             result["deployment_status"] = not_presented
-
+            result["image_name"] = not_presented
+            result["replicas"] = not_presented
         try:
             pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'app=quest')
             if pods is not None and len(pods.items) > 0:

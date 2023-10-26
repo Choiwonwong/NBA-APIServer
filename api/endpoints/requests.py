@@ -8,7 +8,7 @@ from api.controller.process import ProcessController, preProcess, get_nested_val
 from api.controller.cfg import ConfigController
 from api.controller.ctn import CTNController
 from api.controller.eks import UserEKSClientController
-import yaml
+import yaml, boto3
 
 router = APIRouter()
 
@@ -246,9 +246,37 @@ async def createRequest(
         update_request(session=session, request= request, request_data=data)
         raise HTTPException(status_code=500, detail="Failed to create AWS credentials Secret.")
     
+    session = boto3.session(
+        aws_access_key_id=request.awsAccessKey, 
+        aws_secret_access_key=request.awsSecretKey, 
+        region_name=request.awsRegionName
+        )
+
+    iam_client = session.client('iam')
+
+    user_id = ":".join(iam_client.get_user()['User']['Arn'].split(":")[:-1])
+    
+    try:
+        iam_client.get_policy(
+            PolicyArn=f'{user_id}:policy/AWSLoadBalancerControllerIAMPolicy'
+        )
+        PolicyResult= True
+    except:
+        PolicyResult= False
+    
+    try:
+        iam_client.get_role(
+            RoleName='AmazonEKSLoadBalancerControllerRole'
+        )
+        RoleResult=True
+    except:
+        RoleResult=False
+    
     metadata = {
         "ID": str(request.id),
-        "API_ENDPOINT": "quest-api-service.quest.svc.cluster.local:8000/api/webhook"
+        "API_ENDPOINT": "quest-api-service.quest.svc.cluster.local:8000/api/webhook",
+        "LB_POLICY": PolicyResult,
+        "LB_ROLE": RoleResult,
     }
     resultMetadataSecret = configController.createSecret(name="meta-data", data=metadata)
     if not resultMetadataSecret:
