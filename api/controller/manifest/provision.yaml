@@ -2,10 +2,12 @@ apiVersion: v1
 kind: Pod
 metadata:
    name: provision
+   lables:
+     quest: provision
 spec:
    containers:
    - name: provision-ctn
-     image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba_full_provision:2.2
+     image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba_full_provision:2.2.2
      envFrom:
        - configMapRef:
           name: provision-config

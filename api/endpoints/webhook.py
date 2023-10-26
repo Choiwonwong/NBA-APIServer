@@ -21,29 +21,29 @@ def webhook(webhookData: WebHook, session: Session = Depends(get_session)):
 
     if progress == "provision" and state == "success":
         # 배포 잡 생성
-        update_request(session, request, {"progress": "배포", "provisionState": "성공", "deployState": "시작"})
+        update_request(session, request, {"progress": "배포", "provisionState": "success", "deployState": "start"})
         resultDeployJob = ctnController.createJob()
         if not resultDeployJob:
-            data = {"provisionState": "실패", "emessage": "Failed to create Provision Pod."}
-            update_request(session=session, request= request, request_data=data)
-            raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
-        
-    elif progress == "provision" and state == "failed":
-        update_request(session, request, {"progress": "프로비저닝", "provisionState": "실패", "emessage": emessage})
-        resultProvisionPod = ctnController.createPod()
-        if not resultProvisionPod:
-            data = {"provisionState": "실패", "emesage": "Failed to create Provision Pod."}
-            update_request(session=session, request= request, request_data=data)
-            raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
-
-    elif progress == "deploy" and state == "success":
-        update_request(session, request, {"progress": "배포", "deployState": "성공"})
-    
-    elif progress == "deploy" and state == "failed":
-        update_request(session, request, {"progress": "배포", "deployState": "실패", "emessage": emessage})
-        resultDeployJob = ctnController.createJob()
-        if not resultDeployJob:
-            data = {"deployState": "실패", "emessage": "Failed to create Deploy Job."}
+            data = {"deployState": "failed", "emessage": "Failed to create Deploy Job."}
             update_request(session=session, request= request, request_data=data)
             raise HTTPException(status_code=500, detail="Failed to create Deploy Job.")
+        
+    elif progress == "provision" and state == "failed":
+        update_request(session, request, {"progress": "프로비저닝", "provisionState": "failed", "emessage": emessage})
+        # resultProvisionPod = ctnController.createPod()
+        # if not resultProvisionPod:
+        #     data = {"provisionState": "failed", "emesage": "Failed to create Provision Pod."}
+        #     update_request(session=session, request= request, request_data=data)
+        #     raise HTTPException(status_code=500, detail="Failed to create Provision Pod.")
+
+    elif progress == "deploy" and state == "success":
+        update_request(session, request, {"progress": "배포", "deployState": "success"})
+    
+    elif progress == "deploy" and state == "failed":
+        update_request(session, request, {"progress": "배포", "deployState": "failed", "emessage": emessage})
+        # resultDeployJob = ctnController.createJob()
+        # if not resultDeployJob:
+        #     data = {"deployState": "실패", "emessage": "Failed to create Deploy Job."}
+        #     update_request(session=session, request= request, request_data=data)
+        #     raise HTTPException(status_code=500, detail="Failed to create Deploy Job.")
     return {"message": f"{progress}단계 {state} 처리 완료"}

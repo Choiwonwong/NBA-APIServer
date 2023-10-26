@@ -7,7 +7,7 @@ def create_request(session: Session, request_data: dict) -> Request:
     new_request = Request(
         **request_dict,
         progress="처리",
-        processState="시작",
+        processState="start",
         createdAt=datetime.now() + timedelta(hours=9),
         updatedAt=datetime.now() + timedelta(hours=9),
     )

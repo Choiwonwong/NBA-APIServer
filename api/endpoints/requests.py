@@ -226,73 +226,73 @@ async def createRequest(
     request = get_request_by_id(session, request.id)
     serviceNSName = f"quest-{request.id}"
 
-    # aws_credentials = {
-    #     "AWS_ACCESS_KEY_ID": request.awsAccessKey,
-    #     "AWS_SECRET_ACCESS_KEY": request.awsSecretKey,
-    #     "AWS_DEFAULT_REGION": request.awsRegionName,
-    #     "AWS_DEFAULT_OUTPUT": "json"
-    # }
+    aws_credentials = {
+        "AWS_ACCESS_KEY_ID": request.awsAccessKey,
+        "AWS_SECRET_ACCESS_KEY": request.awsSecretKey,
+        "AWS_DEFAULT_REGION": request.awsRegionName,
+        "AWS_DEFAULT_OUTPUT": "json"
+    }
     
-    # configController = ConfigController(namespace=serviceNSName)
-    # resultNS = configController.createNameSpace()
-    # if not resultNS:
-    #     data = {"processState": "실패", "emessage": "네임 스페이스 생성 실패."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Namespace.")
+    configController = ConfigController(namespace=serviceNSName)
+    resultNS = configController.createNameSpace()
+    if not resultNS:
+        data = {"processState":  "failed", "emessage": "네임 스페이스 생성 실패."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Namespace.")
 
-    # resultAWSCredentialSecret = configController.createSecret(name="aws-credentials", data=aws_credentials)
-    # if not resultAWSCredentialSecret:
-    #     data = {"processState": "실패", "emessage": "AWS 인증 정보 생성 실패"}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create AWS credentials Secret.")
+    resultAWSCredentialSecret = configController.createSecret(name="aws-credentials", data=aws_credentials)
+    if not resultAWSCredentialSecret:
+        data = {"processState":  "failed", "emessage": "AWS 인증 정보 생성 실패"}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create AWS credentials Secret.")
     
-    # metadata = {
-    #     "ID": str(request.id),
-    #     "API_ENDPOINT": "quest-api-service.quest.svc.cluster.local:8000/api/webhook"
-    # }
-    # resultMetadataSecret = configController.createSecret(name="meta-data", data=metadata)
-    # if not resultMetadataSecret:
-    #     data = {"processState": "실패", "emessage": "메타 데이터 생성 실패."}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="Failed to create Metadata Secret.")
+    metadata = {
+        "ID": str(request.id),
+        "API_ENDPOINT": "quest-api-service.quest.svc.cluster.local:8000/api/webhook"
+    }
+    resultMetadataSecret = configController.createSecret(name="meta-data", data=metadata)
+    if not resultMetadataSecret:
+        data = {"processState":  "failed", "emessage": "메타 데이터 생성 실패."}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="Failed to create Metadata Secret.")
     
-    # try:
-    #     processedQuest = processController.processQuestI()
-    # except Exception as e:
-    #     print(e)
-    #     data = {"processState": "실패", "emessage": "Quest.yaml 처리 오류"}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="처리 중 오류 발생")
+    try:
+        processedQuest = processController.processQuestI()
+    except Exception as e:
+        print(e)
+        data = {"processState":  "failed", "emessage": "Quest.yaml 처리 오류"}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="처리 중 오류 발생")
     
-    # if quest_data['요청타입'] != "배포":
-    #     resultProvisionCM = configController.createCM(type="provision", data=processedQuest['provision'])
-    #     if not resultProvisionCM:
-    #         data = {"processState": "실패", "emessage": "프로비저닝 정보 생성 실패"}
-    #         update_request(session=session, request= request, request_data=data)
-    #         raise HTTPException(status_code=500, detail="Failed to create Provision ConfigMap.")
+    if quest_data['요청타입'] != "배포":
+        resultProvisionCM = configController.createCM(type="provision", data=processedQuest['provision'])
+        if not resultProvisionCM:
+            data = {"processState":  "failed", "emessage": "프로비저닝 정보 생성 실패"}
+            update_request(session=session, request= request, request_data=data)
+            raise HTTPException(status_code=500, detail="Failed to create Provision ConfigMap.")
     
-    # resultDeployCM = configController.createCM(type="deploy", data=processedQuest['deploy'])
-    # if not resultDeployCM:
-    #     data = {"processState": "실패", "emessage": "배포 정보 생성 실패"}
-    #     update_request(session=session, request= request, request_data=data)
-    #     raise HTTPException(status_code=500, detail="배포 정보 생성 실패")
+    resultDeployCM = configController.createCM(type="deploy", data=processedQuest['deploy'])
+    if not resultDeployCM:
+        data = {"processState":  "failed", "emessage": "배포 정보 생성 실패"}
+        update_request(session=session, request= request, request_data=data)
+        raise HTTPException(status_code=500, detail="배포 정보 생성 실패")
     
-    # ctnController = CTNController(namespace=serviceNSName)
+    ctnController = CTNController(namespace=serviceNSName)
     
-    # if quest_data['요청타입'] != "배포":
-    #     update_request(session=session, request= request, request_data={"processState": "성공", "progress": "프로비저닝", "provisionState": "시작"})
-    #     resultProvisionPod = ctnController.createPod()
-    #     if not resultProvisionPod:
-    #         data = {"provisionState": "실패", "emessage": "프로비저닝 실행자 생성 실패."}
-    #         update_request(session=session, request= request, request_data=data)
-    #         raise HTTPException(status_code=500, detail="프로비저닝 실행자 생성 실패.")
-    # else:
-    #     resultProvisionPod = ctnController.createJob()
-    #     update_request(session=session, request= request, request_data={"processState": "성공", "progress": "배포", "provisionState": "생략", "deployState": "시작"})
-    #     if not resultProvisionPod:
-    #         data = {"provisionState": "실패", "emessage": "베포 실행자 생성 실패."}
-    #         update_request(session=session, request= request, request_data=data)
-    #         raise HTTPException(status_code=500, detail="베포 실행자 생성 실패.")
+    if quest_data['요청타입'] != "배포":
+        update_request(session=session, request= request, request_data={"processState":  "success", "progress": "프로비저닝", "provisionState": "start"})
+        resultProvisionPod = ctnController.createPod()
+        if not resultProvisionPod:
+            data = {"provisionState":  "failed", "emessage": "프로비저닝 실행자 생성 실패."}
+            update_request(session=session, request= request, request_data=data)
+            raise HTTPException(status_code=500, detail="프로비저닝 실행자 생성 실패.")
+    else:
+        resultProvisionPod = ctnController.createJob()
+        update_request(session=session, request= request, request_data={"processState":  "success", "progress": "배포", "provisionState": "생략", "deployState": "start"})
+        if not resultProvisionPod:
+            data = {"provisionState":  "failed", "emessage": "베포 실행자 생성 실패."}
+            update_request(session=session, request= request, request_data=data)
+            raise HTTPException(status_code=500, detail="베포 실행자 생성 실패.")
     return request
 
 

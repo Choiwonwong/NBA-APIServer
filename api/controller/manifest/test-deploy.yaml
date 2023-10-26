@@ -2,9 +2,11 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: pi
-  namespace: default
 spec:
   template:
+    metadata:
+      labels:
+        app: pi
     spec:
       containers:
       - name: pi

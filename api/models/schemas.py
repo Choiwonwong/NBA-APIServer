@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
-from sqlalchemy.sql import func
+from datetime import datetime
+# from sqlalchemy.sql import func
 from sqlmodel import SQLModel, Field
 
 class Request(SQLModel, table=True):
     __tablename__ = "requests"
     id: int = Field(primary_key=True)
-    createdAt: datetime = Field(default=func.now() + timedelta(hours=9))
-    updatedAt: datetime = Field(default=func.now() + timedelta(hours=9))
+    createdAt: datetime 
+    updatedAt: datetime
     requestTitle: str
     requestType: str
     awsAccessKey: str
