@@ -174,6 +174,7 @@ def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)
 
     if eks_active == True:
         deployRequest = {
+            'title': request.requestTitle,
             'namespace': request.namespaceName,
             'deployment_name': request.deploymentName,
             'service_name': request.serviceName
