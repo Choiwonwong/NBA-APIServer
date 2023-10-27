@@ -316,7 +316,7 @@ async def createRequest(
             raise HTTPException(status_code=500, detail="프로비저닝 실행자 생성 실패.")
     else:
         resultProvisionPod = ctnController.createJob()
-        update_request(session=session, request= request, request_data={"processState":  "success", "progress": "배포", "provisionState": "생략", "deployState": "start"})
+        update_request(session=session, request= request, request_data={"processState":  "success", "progress": "배포", "provisionState": "skip", "deployState": "start"})
         if not resultProvisionPod:
             data = {"provisionState":  "failed", "emessage": "베포 실행자 생성 실패."}
             update_request(session=session, request= request, request_data=data)
