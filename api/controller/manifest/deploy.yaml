@@ -10,8 +10,8 @@ spec:
     spec:
       containers:
       - name: deploy-ctn
-        image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-quest-deploy:0.3.1
-        command: ["/bin/sh", "-c", "/deploy/deploy_test.sh"]
+        image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/nba-quest-deploy:0.5.0
+        command: ["/bin/sh", "-c", "/deploy/deploy.sh"]
         envFrom:
         - secretRef:
             name: aws-credentials

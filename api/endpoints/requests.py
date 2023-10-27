@@ -247,13 +247,13 @@ async def createRequest(
         update_request(session=session, request= request, request_data=data)
         raise HTTPException(status_code=500, detail="Failed to create AWS credentials Secret.")
     
-    session = boto3.session(
+    boto_session = boto3.Session(
         aws_access_key_id=request.awsAccessKey, 
         aws_secret_access_key=request.awsSecretKey, 
         region_name=request.awsRegionName
         )
 
-    iam_client = session.client('iam')
+    iam_client = boto_session.client('iam')
 
     user_id = ":".join(iam_client.get_user()['User']['Arn'].split(":")[:-1])
     
