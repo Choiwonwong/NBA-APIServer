@@ -129,7 +129,7 @@ class UserEKSClientController:
             result["eks_endpoint"] = not_presented
         
         try:
-            vpc_id = eks_client.describe_cluster(name='nba-eks')['cluster']['resourcesVpcConfig']['vpcId']
+            vpc_id = eks_client.describe_cluster(name=self.cluster_name)['cluster']['resourcesVpcConfig']['vpcId']
             vpc_response = vpc_client.describe_vpcs(VpcIds=[vpc_id])
             if vpc_response['Vpcs']:
                 vpc_tags = vpc_response['Vpcs'][0].get('Tags', [])
@@ -205,7 +205,6 @@ class UserEKSClientController:
             result["replicas"] = not_presented
         try:
             pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'quest={data["title"].lower()}')
-            print(pods)
             if pods is not None and len(pods.items) > 0:
                 result["pod_status"] = []
                 for idx in range(len(pods.items)):

@@ -261,17 +261,17 @@ async def createRequest(
         iam_client.get_policy(
             PolicyArn=f'{user_id}:policy/AWSLoadBalancerControllerIAMPolicyQUEST'
         )
-        PolicyResult= True
+        PolicyResult= "True"
     except:
-        PolicyResult= False
+        PolicyResult= "False"
     
     try:
         iam_client.get_role(
             RoleName='AmazonEKSLoadBalancerControllerRoleQUEST'
         )
-        RoleResult=True
+        RoleResult="True"
     except:
-        RoleResult=False
+        RoleResult="False"
     
     metadata = {
         "ID": str(request.id),
