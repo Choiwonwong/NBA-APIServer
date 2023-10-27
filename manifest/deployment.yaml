@@ -12,7 +12,8 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: quest-api
-        app: api
+        quest: api
+        app: quest
     spec:
       containers:
         - name: quest-api-ctn
