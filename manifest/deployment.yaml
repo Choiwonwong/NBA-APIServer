@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: quest-api-ctn
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.1.11
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.1.12
           ports:
             - name: http
               containerPort: 8000

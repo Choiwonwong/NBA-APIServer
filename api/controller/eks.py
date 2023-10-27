@@ -204,7 +204,8 @@ class UserEKSClientController:
             result["image_name"] = not_presented
             result["replicas"] = not_presented
         try:
-            pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'quest={data.title.lower()}')
+            pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'quest={data["title"].lower()}')
+            print(pods)
             if pods is not None and len(pods.items) > 0:
                 result["pod_status"] = []
                 for idx in range(len(pods.items)):
@@ -215,7 +216,7 @@ class UserEKSClientController:
                     }    
                     result["pod_status"].append(pod_info) 
             else:
-                result["pod_status"] = not_presented            
+                result["pod_status"] = not_presented
         except:
             result["pods_status"] = not_presented
 

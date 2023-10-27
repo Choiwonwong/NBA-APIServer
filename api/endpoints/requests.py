@@ -259,7 +259,7 @@ async def createRequest(
     
     try:
         iam_client.get_policy(
-            PolicyArn=f'{user_id}:policy/AWSLoadBalancerControllerIAMPolicy'
+            PolicyArn=f'{user_id}:policy/AWSLoadBalancerControllerIAMPolicyQUEST'
         )
         PolicyResult= True
     except:
@@ -267,7 +267,7 @@ async def createRequest(
     
     try:
         iam_client.get_role(
-            RoleName='AmazonEKSLoadBalancerControllerRole'
+            RoleName='AmazonEKSLoadBalancerControllerRoleQUEST'
         )
         RoleResult=True
     except:
