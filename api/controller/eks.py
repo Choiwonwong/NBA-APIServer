@@ -120,13 +120,13 @@ class UserEKSClientController:
         
         try:
             eks_infos = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
-            result["eks_version"] = eks_infos["version"]
-            result["eks_status"] = eks_infos["status"]
-            result["eks_endpoint"] = eks_infos["endpoint"]
+            result["eks_version"] = eks_infos.get("version", not_presented)
+            result["eks_status"] = eks_infos.get("status", not_presented)
+            result["eks_endpoint"] = eks_infos.get("endpoint", not_presented)
         except Exception as e:
             result["eks_version"] = not_presented
             result["eks_status"] = not_presented
-            result["eks_endpoint"] = not_presented
+            result["eks_endpoint"] = not_presented        
         
         try:
             vpc_id = eks_client.describe_cluster(name=self.cluster_name)['cluster']['resourcesVpcConfig']['vpcId']

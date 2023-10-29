@@ -68,23 +68,3 @@ class CTNController:
                 yield f"data: {remove_ansi_escape_sequences(log.decode('utf-8'))}\n\n"
         except ApiException as e:
             return False
-        
-    # def getLogsStreamer(self, progress):
-    #     v1 = client.CoreV1Api(self.k8sClient)
-    #     if progress == "provision":
-    #         pod_name = "provision"
-    #     elif progress == "deploy":
-    #         pods = v1.list_namespaced_pod(namespace=self.namespace, label_selector=f"job-name=deploy")
-    #         running_pods = [pod for pod in pods.items if pod.status.phase == "Running"]
-    #         try:
-    #              if running_pods:
-    #                 pod_name = running_pods[0].metadata.name
-    #         except ApiException as e:
-    #             return False
-    #     try: 
-    #         response = v1.read_namespaced_pod_log(name=pod_name, namespace=self.namespace, follow=True, _preload_content=False)
-    #         for log in response:
-    #             yield f"data: {log}\n\n"
-    #     except ApiException as e:
-    #         return False
-            
