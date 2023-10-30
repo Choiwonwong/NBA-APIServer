@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from api.models.pydantic_models import RequestsUpdate, RequestsOutput
 from api.models.connection import get_session
 from api.models.crud import create_request, get_request_by_id, get_requests, update_request, delete_request
-from api.controller.process import ProcessController, preProcess, get_nested_value
+from api.controller.process import ProcessController, preProcess, get_nested_value, is_english
 from api.controller.cfg import ConfigController
 from api.controller.ctn import CTNController
 from api.controller.eks import UserEKSClientController
@@ -90,8 +90,8 @@ async def checkQuest(file: UploadFile):
         raise HTTPException(status_code=400, detail=response)
 
     spec_value = quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("스펙", "중")
-    if spec_value not in ["대", "중", "소"]:
-        response["message"] = "가상 머신 스펙은 대(t3.large), 중(t3.medium), 소(t3.micro)만 지원합니다. 한글로 입력하시고 다시 요청해주세요"
+    if spec_value not in ["대", "중"]:
+        response["message"] = "가상 머신 스펙은 대(t3.large), 중(t3.medium)만 지원합니다. 다시 요청해주세요"
         raise HTTPException(status_code=400, detail=response)
     
     integer_inputs = [
@@ -121,6 +121,39 @@ async def checkQuest(file: UploadFile):
                 response["message"] = f"환경 변수 이름 '{name}'이 중복되었습니다. 이름은 고유해야 합니다."
                 raise HTTPException(status_code=400, detail=response)
             seen_names.add(name)
+
+    if not is_english(quest_data.get("네트워크환경", {}).get("개인작업네트워크이름", "default")):
+        response["message"] = "네트워크 이름은 영어(소문자)로 입력해주세요."
+        raise HTTPException(status_code=400, detail=response)
+    if not is_english(quest_data.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름", "default")):
+        response["message"] = "컨트롤 플레인 이름은 영어(소문자)로 입력해주세요."
+        raise HTTPException(status_code=400, detail=response)
+    if not is_english(quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름", "default")):
+        response["message"] = "데이터 플레인 이름은 영어(소문자)로 입력해주세요."
+        raise HTTPException(status_code=400, detail=response)
+    if not is_english(quest_data.get("배포요청", {}).get("네임스페이스이름", "default")):
+        response["message"] = "네임 스페이스 이름은 영어(소문자)로 입력해주세요."
+        raise HTTPException(status_code=400, detail=response)
+    if not is_english(quest_data.get("배포요청", {}).get("애플리케이션", {}).get("이름", "default")):
+        response["message"] = "앱 이름은 영어(소문자)로 입력해주세요."
+        raise HTTPException(status_code=400, detail=response)
+    if not is_english(quest_data.get("배포요청", {}).get("서비스", {}).get("이름", "default")):
+        response["message"] = "서비스 이름은 영어(소문자)로 입력해주세요."
+        raise HTTPException(status_code=400, detail=response)
+    
+    if quest_data.get("요청타입", "전체") == "배포":
+        try:
+            quest_data.get("컴퓨팅요청", {}).get("컨트롤플레인", {}).get("이름")
+            pass
+        except:
+            response["message"] = "컨트롤 플레인(EKS) 이름을 입력해주세요."
+            raise HTTPException(status_code=400, detail=response)
+        try:
+            quest_data.get("컴퓨팅요청", {}).get("데이터플레인", {}).get("이름")
+            pass
+        except:
+            response["message"] = "데이터 플레인(노드그룹) 이름을 입력해주세요."
+            raise HTTPException(status_code=400, detail=response)
 
     processController = ProcessController(quest=quest_data)
     
