@@ -139,9 +139,8 @@ class UserEKSClientController:
         except Exception as e:
             result["vpc_name"] = None
         
-        
         try: 
-            subnets_ids = eks_client.describe_cluster(name='nba-eks')['cluster']['resourcesVpcConfig']['subnetIds']
+            subnets_ids = eks_client.describe_cluster(name=self.cluster_name)['cluster']['resourcesVpcConfig']['subnetIds']
             subnet_response = vpc_client.describe_subnets(SubnetIds=subnets_ids)['Subnets']
             for subnet in subnet_response:
                 is_public = subnet['MapPublicIpOnLaunch']
