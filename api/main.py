@@ -1,13 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints import requests, webhook
 from api.models.connection import K8s_client
 from kubernetes import client
-import logging
+import logging, time
 
 class EndpointFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         return record.getMessage().find("/api/health") == -1
+    
+log_format = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+logging.basicConfig(filename='http_requests.log', level=logging.INFO, format=log_format)
 
 app = FastAPI(docs_url='/api/docs', openapi_url='/api/openapi.json')
 
@@ -26,6 +29,19 @@ app.add_middleware(
 
 app.include_router(requests.router , prefix='/api/requests')
 app.include_router(webhook.router , prefix='/api')
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    
+    # HTTP 요청 정보를 로그에 기록
+    log_message = f"{request.client} - {request.method} {request.url} - {response.status_code}"
+    logging.info(log_message)
+    
+    return response
 
 @app.get('/api/health', tags=['healthcheck'])
 async def get_namespaces():
