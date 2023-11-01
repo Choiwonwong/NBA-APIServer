@@ -141,8 +141,9 @@ class UserEKSClientController:
         
         
         try: 
-            subnet_response = vpc_client.describe_subnets(Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])
-            for subnet in subnet_response['Subnets']:
+            subnets_ids = eks_client.describe_cluster(name='nba-eks')['cluster']['resourcesVpcConfig']['subnetIds']
+            subnet_response = vpc_client.describe_subnets(SubnetIds=subnets_ids)['Subnets']
+            for subnet in subnet_response:
                 is_public = subnet['MapPublicIpOnLaunch']
                 if is_public:
                     result["public_subnet_count"] += 1
