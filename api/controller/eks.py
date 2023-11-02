@@ -1,6 +1,7 @@
 import boto3, eks_token
 import os, tempfile, base64
 import kubernetes
+import time
 
 presented = "Found"
 not_presented = "Not Found"
@@ -38,10 +39,13 @@ class UserEKSClientController:
             config_file.write(f"[default]\nregion = {self.aws_region}")
     
     def _get_eks_token(self):
+        time.sleep(0.2)
         self._create_aws_config()
         token = eks_token.get_token(self.cluster_name)
+        time.sleep(0.2)
         os.remove(self.aws_credentials_path)
         os.remove(self.aws_config_path)
+        time.sleep(0.2)
         return token
     
     def _get_eks_ca(self):
