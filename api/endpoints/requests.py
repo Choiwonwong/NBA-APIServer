@@ -215,6 +215,8 @@ def getOneRequestDetail(request_id: int, session: Session = Depends(get_session)
         deployData = userEKSController.get_deploy_info(data=deployRequest)
         result["eks_active"] = eks_active
         result["deploy"] = deployData
+    
+    del userEKSController
     return result
 
 ################################################################################################################### OK
