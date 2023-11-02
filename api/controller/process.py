@@ -161,7 +161,7 @@ class ProcessController:
         result['deploymentName'] = self.quest.get("배포요청", {}).get("애플리케이션", {}).get("이름", "quest-app").lower()
         result['serviceName'] = self.quest.get("배포요청", {}).get("서비스", {}).get("이름", "quest-service").lower()
         
-        if "서울" in self.quest.get("AWS지역명", "도쿄"):
+        if "서울" in self.quest.get("AWS인증정보").get("AWS지역명", "도쿄"):
             result['awsRegionName'] = "ap-northeast-2"
         else:
             result['awsRegionName'] = "ap-northeast-1"
