@@ -12,12 +12,12 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: quest-api
-        quest: dummydata2
+        quest: dummydata
         app: api
     spec:
       containers:
         - name: quest-api-ctn
-          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.2.8
+          image: 622164100401.dkr.ecr.ap-northeast-1.amazonaws.com/quest-api:0.2.9
           ports:
             - name: http
               containerPort: 8000
@@ -34,11 +34,11 @@ spec:
               readOnly: true
           resources:
             requests:
-              cpu: 250m
-              memory: 250Mi
+              cpu: 50m
+              memory: 100Mi
             limits:
-              cpu: 500m
-              memory: 500Mi
+              cpu: 150m
+              memory: 250Mi
       volumes:
         - name: quest-api-ca
           secret:
