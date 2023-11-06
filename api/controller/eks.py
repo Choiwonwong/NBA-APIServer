@@ -39,21 +39,18 @@ class UserEKSClientController:
     
     def _get_eks_token(self):
         self._create_aws_config()
-
-        print("Contents of ~/.aws/credentials:")
-        print("Contents of ~/.aws/credentials:")
         print("Contents of ~/.aws/credentials:")
         with open(self.aws_credentials_path, "r") as credentials_file:
             for line in credentials_file:
                 print(line, end="")
-
+        print("")
+        print("")
         # 출력 ~/.aws/config 파일 내용
-        print("\nContents of ~/.aws/config:")
-        print("\nContents of ~/.aws/config:")
         print("\nContents of ~/.aws/config:")
         with open(self.aws_config_path, "r") as config_file:
             for line in config_file:
                 print(line, end="")
+        print("")
 
         token = eks_token.get_token(self.cluster_name)
         os.remove(self.aws_credentials_path)
@@ -64,6 +61,8 @@ class UserEKSClientController:
         eks_client = self.session.client('eks')
         try:
             cluster_data = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
+            print("User EKS CA Info")
+            print(cluster_data["certificateAuthority"]["data"])
             return _write_cafile(cluster_data["certificateAuthority"]["data"])
         except Exception as e:
             return False
@@ -79,14 +78,9 @@ class UserEKSClientController:
         kconfig.debug = False
         kclient = kubernetes.client.ApiClient(configuration=kconfig)
 
-        print("User EKS K8s Client Info")
-        print("User EKS K8s Client Info")
-        print("User EKS K8s Client Info")
-        
+        print("User EKS K8s Client Info")    
         print(kclient)
-        print(kclient)
-        print(kclient)
-
+    
         return kclient
     
     def _get_user_eks_client(self):
@@ -97,14 +91,14 @@ class UserEKSClientController:
             return False
         try: 
             endpoint = client.describe_cluster(name=self.cluster_name)["cluster"]["endpoint"]
+            print("User EKS Endpoint Info")
+            print(endpoint)
         except Exception as e:
             return False 
         
         print(f"Token Info: {token}")
         print(f"Token Info: {token}")
-        print(f"Token Info: {token}")
 
-        print(f"cafile Info: {cafile}")
         print(f"cafile Info: {cafile}")
         print(f"cafile Info: {cafile}")
 
@@ -222,6 +216,10 @@ class UserEKSClientController:
         result["deployment_name"] = deployment_name
         result["service_name"] = service_name
 
+        print("Check Deploy Info")
+        print(apps_v1_client)
+        print(kube_client)
+
         try:
             kube_client.read_namespace(namespace_name)
             result["namespace_status"] = presented
@@ -272,4 +270,9 @@ class UserEKSClientController:
             result["service_external_ip"] = service.status.load_balancer.ingress[0].hostname
         except:
             result["service_external_ip"] = not_presented
+
+        del apps_v1_client
+        del kube_client
+        del eks_client
+
         return result
