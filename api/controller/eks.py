@@ -1,6 +1,6 @@
-import boto3, eks_token
+import boto3, eks_token, json
 import os, tempfile, base64
-import kubernetes
+import subprocess, kubernetes
 
 presented = "Found"
 not_presented = "Not Found"
@@ -39,19 +39,6 @@ class UserEKSClientController:
     
     def _get_eks_token(self):
         self._create_aws_config()
-        print("Contents of ~/.aws/credentials:")
-        with open(self.aws_credentials_path, "r") as credentials_file:
-            for line in credentials_file:
-                print(line, end="")
-        print("")
-        print("")
-        # 출력 ~/.aws/config 파일 내용
-        print("\nContents of ~/.aws/config:")
-        with open(self.aws_config_path, "r") as config_file:
-            for line in config_file:
-                print(line, end="")
-        print("")
-
         token = eks_token.get_token(self.cluster_name)
         os.remove(self.aws_credentials_path)
         os.remove(self.aws_config_path)
@@ -61,8 +48,6 @@ class UserEKSClientController:
         eks_client = self.session.client('eks')
         try:
             cluster_data = eks_client.describe_cluster(name=self.cluster_name)["cluster"]
-            print("User EKS CA Info")
-            print(cluster_data["certificateAuthority"]["data"])
             return _write_cafile(cluster_data["certificateAuthority"]["data"])
         except Exception as e:
             return False
@@ -77,9 +62,6 @@ class UserEKSClientController:
         kconfig.verify_ssl = True 
         kconfig.debug = False
         kclient = kubernetes.client.ApiClient(configuration=kconfig)
-
-        print("User EKS K8s Client Info")    
-        print(kclient)
     
         return kclient
     
@@ -91,16 +73,8 @@ class UserEKSClientController:
             return False
         try: 
             endpoint = client.describe_cluster(name=self.cluster_name)["cluster"]["endpoint"]
-            print("User EKS Endpoint Info")
-            print(endpoint)
         except Exception as e:
             return False 
-        
-        print(f"Token Info: {token}")
-        print(f"Token Info: {token}")
-
-        print(f"cafile Info: {cafile}")
-        print(f"cafile Info: {cafile}")
 
         eks_client = self._k8s_api_client_config(endpoint, token, cafile)
         return eks_client
@@ -201,78 +175,74 @@ class UserEKSClientController:
         return result
     
     def get_deploy_info(self, data):
-        eks_client= self._get_user_eks_client()
-        if eks_client is False:
-            return {"eks_present": False}
+        result = subprocess.check_output(["python", "api/controller/get_deploy.py", self.aws_access_key, self.aws_secret_key, self.aws_region, self.cluster_name,
+                                          data['namespace'], data['deployment_name'], data['service_name'], data['title']])
+        return json.loads(result)
+
+        # eks_client= self._get_user_eks_client()
+        # if eks_client is False:
+        #     return {"eks_present": False}
         
-        apps_v1_client = kubernetes.client.AppsV1Api(eks_client)
-        kube_client = kubernetes.client.CoreV1Api(eks_client)
+        # apps_v1_client = kubernetes.client.AppsV1Api(eks_client)
+        # kube_client = kubernetes.client.CoreV1Api(eks_client)
 
-        namespace_name = data['namespace']
-        deployment_name = data['deployment_name']
-        service_name = data['service_name']
-        result = {}
-        result["namespace_name"] = namespace_name
-        result["deployment_name"] = deployment_name
-        result["service_name"] = service_name
+        # namespace_name = data['namespace']
+        # deployment_name = data['deployment_name']
+        # service_name = data['service_name']
+        # result = {}
+        # result["namespace_name"] = namespace_name
+        # result["deployment_name"] = deployment_name
+        # result["service_name"] = service_name
 
-        print("Check Deploy Info")
-        print(apps_v1_client)
-        print(kube_client)
+        # try:
+        #     kube_client.read_namespace(namespace_name)
+        #     result["namespace_status"] = presented
+        # except kubernetes.client.rest.ApiException as e:
+        #     result["namespace_status"] = not_presented
+        # try:
+        #     deployment = apps_v1_client.read_namespaced_deployment(deployment_name, namespace_name)
+        #     result["deployment_status"] = deployment.status.conditions[-1].type
+        #     result["replicas"] = deployment.spec.replicas
+        #     result["image_name"] = deployment.spec.template.spec.containers[0].image
+        # except kubernetes.client.rest.ApiException as e:
+        #     result["deployment_status"] = not_presented
+        #     result["image_name"] = not_presented
+        #     result["replicas"] = not_presented
+        # try:
+        #     pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'quest={data["title"].lower()}')
+        #     if pods is not None and len(pods.items) > 0:
+        #         result["pod_status"] = []
+        #         for idx in range(len(pods.items)):
+        #             pod = pods.items[idx]
+        #             pod_info = {
+        #                 "pod_name": pod.metadata.name,
+        #                 "pod_status": pod.status.phase
+        #             }    
+        #             result["pod_status"].append(pod_info) 
+        #     else:
+        #         result["pod_status"] = not_presented
+        # except:
+        #     result["pods_status"] = not_presented
 
-        try:
-            kube_client.read_namespace(namespace_name)
-            result["namespace_status"] = presented
-        except kubernetes.client.rest.ApiException as e:
-            result["namespace_status"] = not_presented
-        try:
-            deployment = apps_v1_client.read_namespaced_deployment(deployment_name, namespace_name)
-            result["deployment_status"] = deployment.status.conditions[-1].type
-            result["replicas"] = deployment.spec.replicas
-            result["image_name"] = deployment.spec.template.spec.containers[0].image
-        except kubernetes.client.rest.ApiException as e:
-            result["deployment_status"] = not_presented
-            result["image_name"] = not_presented
-            result["replicas"] = not_presented
-        try:
-            pods = kube_client.list_namespaced_pod(namespace_name, label_selector=f'quest={data["title"].lower()}')
-            if pods is not None and len(pods.items) > 0:
-                result["pod_status"] = []
-                for idx in range(len(pods.items)):
-                    pod = pods.items[idx]
-                    pod_info = {
-                        "pod_name": pod.metadata.name,
-                        "pod_status": pod.status.phase
-                    }    
-                    result["pod_status"].append(pod_info) 
-            else:
-                result["pod_status"] = not_presented
-        except:
-            result["pods_status"] = not_presented
+        # try:
+        #     service = kube_client.read_namespaced_service(service_name, namespace_name)
+        # except:
+        #     result["service_type"] = not_presented
+        #     result["deployment_port"] = not_presented
+        #     result["service_external_ip"] = not_presented
 
-        try:
-            service = kube_client.read_namespaced_service(service_name, namespace_name)
-        except:
-            result["service_type"] = not_presented
-            result["deployment_port"] = not_presented
-            result["service_external_ip"] = not_presented
+        # try:
+        #     result["service_type"] = service.spec.type
+        # except:
+        #     result["service_type"] = not_presented
 
-        try:
-            result["service_type"] = service.spec.type
-        except:
-            result["service_type"] = not_presented
+        # try:
+        #     result["deployment_port"] = service.spec.ports[0].port
+        # except:
+        #     result["deployment_port"] = not_presented
+        # try:
+        #     result["service_external_ip"] = service.status.load_balancer.ingress[0].hostname
+        # except:
+        #     result["service_external_ip"] = not_presented
 
-        try:
-            result["deployment_port"] = service.spec.ports[0].port
-        except:
-            result["deployment_port"] = not_presented
-        try:
-            result["service_external_ip"] = service.status.load_balancer.ingress[0].hostname
-        except:
-            result["service_external_ip"] = not_presented
-
-        del apps_v1_client
-        del kube_client
-        del eks_client
-
-        return result
+        # return result
