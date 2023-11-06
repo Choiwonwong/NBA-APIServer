@@ -25,7 +25,7 @@ class UserEKSClientController:
         self.dataplane_name = data['dataplane_name']
         self.session = boto3.Session( aws_access_key_id=data['aws_access_key'], 
                                      aws_secret_access_key=data['aws_secret_key'], 
-                                     region_name=data['aws_regAion'])
+                                     region_name=data['aws_region'])
     
     def _create_aws_config(self):
         aws_directory = os.path.expanduser("~/.aws")
