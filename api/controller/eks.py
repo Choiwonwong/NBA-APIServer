@@ -1,7 +1,6 @@
 import boto3, eks_token
 import os, tempfile, base64
 import kubernetes
-import time
 
 presented = "Found"
 not_presented = "Not Found"
@@ -26,7 +25,7 @@ class UserEKSClientController:
         self.dataplane_name = data['dataplane_name']
         self.session = boto3.Session( aws_access_key_id=data['aws_access_key'], 
                                      aws_secret_access_key=data['aws_secret_key'], 
-                                     region_name=data['aws_region'])
+                                     region_name=data['aws_regAion'])
     
     def _create_aws_config(self):
         aws_directory = os.path.expanduser("~/.aws")
@@ -39,13 +38,26 @@ class UserEKSClientController:
             config_file.write(f"[default]\nregion = {self.aws_region}")
     
     def _get_eks_token(self):
-        time.sleep(0.2)
         self._create_aws_config()
+
+        print("Contents of ~/.aws/credentials:")
+        print("Contents of ~/.aws/credentials:")
+        print("Contents of ~/.aws/credentials:")
+        with open(self.aws_credentials_path, "r") as credentials_file:
+            for line in credentials_file:
+                print(line, end="")
+
+        # 출력 ~/.aws/config 파일 내용
+        print("\nContents of ~/.aws/config:")
+        print("\nContents of ~/.aws/config:")
+        print("\nContents of ~/.aws/config:")
+        with open(self.aws_config_path, "r") as config_file:
+            for line in config_file:
+                print(line, end="")
+
         token = eks_token.get_token(self.cluster_name)
-        time.sleep(0.2)
         os.remove(self.aws_credentials_path)
         os.remove(self.aws_config_path)
-        time.sleep(0.2)
         return token
     
     def _get_eks_ca(self):
@@ -67,6 +79,14 @@ class UserEKSClientController:
         kconfig.debug = False
         kclient = kubernetes.client.ApiClient(configuration=kconfig)
 
+        print("User EKS K8s Client Info")
+        print("User EKS K8s Client Info")
+        print("User EKS K8s Client Info")
+        
+        print(kclient)
+        print(kclient)
+        print(kclient)
+
         return kclient
     
     def _get_user_eks_client(self):
@@ -79,6 +99,15 @@ class UserEKSClientController:
             endpoint = client.describe_cluster(name=self.cluster_name)["cluster"]["endpoint"]
         except Exception as e:
             return False 
+        
+        print(f"Token Info: {token}")
+        print(f"Token Info: {token}")
+        print(f"Token Info: {token}")
+
+        print(f"cafile Info: {cafile}")
+        print(f"cafile Info: {cafile}")
+        print(f"cafile Info: {cafile}")
+
         eks_client = self._k8s_api_client_config(endpoint, token, cafile)
         return eks_client
     
