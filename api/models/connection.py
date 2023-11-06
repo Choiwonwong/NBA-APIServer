@@ -28,8 +28,8 @@ eks_token = os.environ.get('token')
 
 configuration = client.Configuration()
 configuration.host = eks_url
-configuration.verify_ssl = False
-# configuration.ssl_ca_cert = "/root/.kube/ca.crt"
+configuration.verify_ssl = True
+configuration.ssl_ca_cert = "/root/.kube/ca.crt"
 configuration.debug = False
 configuration.api_key = {"authorization": f"Bearer {eks_token}"}
 

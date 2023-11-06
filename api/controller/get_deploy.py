@@ -82,7 +82,8 @@ def get_user_eks_client():
 
 eks_client= get_user_eks_client()
 if eks_client is False:
-    print ({"eks_present": False})
+    print (json.dumps({"eks_present": False}))
+    sys.exit(0)
 
 apps_v1_client = kubernetes.client.AppsV1Api(eks_client)
 kube_client = kubernetes.client.CoreV1Api(eks_client)
@@ -138,17 +139,4 @@ try:
 except:
     result["service_external_ip"] = not_presented
 
-result_dict = {
-    "namespace_name": namespace_name,
-    "deployment_name": deployment_name,
-    "service_name": service_name,
-    "namespace_status": result["namespace_status"],
-    "deployment_status": result["deployment_status"],
-    "replicas": result["replicas"],
-    "image_name": result["image_name"],
-    "pod_status": result["pod_status"],
-    "service_type": result["service_type"],
-    "deployment_port": result["deployment_port"],
-    "service_external_ip": result["service_external_ip"]
-}
 print(json.dumps(result))
