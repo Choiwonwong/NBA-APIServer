@@ -8,7 +8,7 @@ pipeline {
         ACCOUNT_ID='622164100401'
         AWS_CREDENTIAL_NAME='NBA-AWS-Credential-v2'
         IMAGE_NAME = 'quest-api'
-        IMAGE_VERSION = "0.3.9"
+        IMAGE_VERSION = "0.4.0"
     }
     stages {
         stage('Checkout') {
